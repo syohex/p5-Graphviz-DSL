@@ -400,9 +400,33 @@ Graph::Gviz - Graphviz Perl interface with DSL
       route main => [qw/init parse cleanup printf/];
       route init => 'make', parse => 'execute';
       route execute => [qw/make compare printf /];
+
+      nodes colorscheme => 'piyg8', style => 'filled';
+
+      my $index = 1;
+      for my $n ( nodeset() ) {
+          node($n->id, fillcolor => $index++);
+      }
+
+      edges arrowhead => 'onormal', color => 'magenta4';
+      edge 'main_printf', arrowtail => 'diamond', color => '#3355FF';
+      global bgcolor => 'white';
+
+      node 'execute', shape => 'Mrecord',
+                      label => '{<x>execute | {a | b | c}}';
+      node 'printf',  shape => 'Mrecord',
+                      label => '{printf |<y> format}';
+
+      edge 'execute:x_printf:y';
+      rank 'same', 'cleanup', 'execute';
+
+      subgraph {
+          global label => 'SUB';
+          node 'init';
+          node 'make';
+      };
   };
 
-  print "$graph"; # print $graph->as_string;
   $graph->save(path => 'output', type => 'png', encoding => 'utf-8');
 
 =head1 DESCRIPTION
@@ -411,11 +435,11 @@ Graph::Gviz is Perl version of Ruby gem I<Gviz>.
 
 =head1 INTERFACES
 
-=head2 as_string
-
 =head2 Method in DSL
 
 =head3 C<< add $node, [%attributes] >>
+
+Add node with C<%attributes>.
 
 =head3 C<< route $node, [%attributes] >>
 
@@ -482,9 +506,15 @@ Encoding of output DOT file. Default is I<utf-8>.
 
 =back
 
+=head3 C<< $graph->as_string >>
+
+Return DOT file as string.
+
 =head1 SEE ALSO
 
 Gviz L<https://github.com/melborne/Gviz>
+
+Graphviz L<http://www.graphviz.org/>
 
 =head1 AUTHOR
 
@@ -498,7 +528,5 @@ Copyright 2012- Syohei YOSHIDA
 
 This library is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself.
-
-=head1 SEE ALSO
 
 =cut
