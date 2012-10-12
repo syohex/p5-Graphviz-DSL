@@ -7,13 +7,14 @@ use Carp ();
 sub new {
     my ($class, %args) = @_;
 
-    my $id    = delete $args{id};
-    my $attrs = delete $args{attrs} || {};
-    unless (ref $attrs eq 'HASH') {
-        Carp::croak("'attrs' paramter should be hash reference");
+    unless (exists $args{id}) {
+        Carp::croak("missing mandatory parameter 'id'");
     }
 
-    my $self = bless { attrs => $attrs }, $class;
+    my $id    = delete $args{id};
+    my $attrs = delete $args{attributes} || {};
+
+    my $self = bless { attributes => $attrs }, $class;
     $self->_parse_id($id);
 
     return $self;
@@ -36,8 +37,8 @@ sub nodes {
 sub update_attributes {
     my ($self, $attrs) = @_;
 
-    my %old_attrs = %{$self->{attrs}};
-    $self->{attrs} = {
+    my %old_attrs = %{$self->{attributes}};
+    $self->{attributes} = {
         %old_attrs,
         %{$attrs},
     };
@@ -55,8 +56,12 @@ sub _parse_id {
         Carp::croak("'id' parameter($id) must not include other than words or colon");
     }
 
+    unless ($id =~ m/_/) {
+        Carp::croak("'id' parameter($id) must contain underscore");
+    }
+
     my ($start, $start_port, $end, $end_port, $seq);
-    ($start, $end, $seq) = split /_/, $id;
+    ($start, $end, $seq) = split /_/, $id, 3;
 
     ($start, $start_port) = split /:/, $start if $start =~ m{:};
     ($end, $end_port)     = split /:/, $end   if $end   =~ m{:};
@@ -73,8 +78,8 @@ sub _parse_id {
 }
 
 # accessor
-sub id         { $_[0]->{id}    }
-sub attrs      { $_[0]->{attrs} }
+sub id            { $_[0]->{id}    }
+sub attributes    { $_[0]->{attributes} }
 sub start_node_id { $_[0]->{start} }
 sub end_node_id   { $_[0]->{end}   }
 

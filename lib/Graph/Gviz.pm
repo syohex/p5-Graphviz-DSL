@@ -125,8 +125,8 @@ sub _node {
         $node->update_attributes($attrs);
     } else {
         push @{$self->{nodes}}, Graph::Gviz::Node->new(
-            id    => $id,
-            attrs => $attrs
+            id         => $id,
+            attributes => $attrs
         );
     }
 }
@@ -312,33 +312,33 @@ sub as_string {
     my @result;
     my $indent = '  ';
 
-    push @result, (sprintf "%s %s {", $self->{type}, $self->{name});
+    push @result, sprintf "%s %s {", $self->{type}, $self->{name};
 
     if (%{$self->{graph_attrs}}) {
         my $graph_attrs_str = join ";\n$indent", @{_build_attrs($self->{graph_attrs}, 0)};
-        push @result, (sprintf "%s%s;", $indent, $graph_attrs_str);
+        push @result, sprintf "%s%s;", $indent, $graph_attrs_str;
     }
 
     if (%{$self->{gnode_attrs}}) {
         my $gnode_attr_str = _build_attrs($self->{gnode_attrs});
-        push @result, (sprintf "%snode%s;", $indent, $gnode_attr_str);
+        push @result, sprintf "%snode%s;", $indent, $gnode_attr_str;
     }
 
     if (%{$self->{gedge_attrs}}) {
         my $gedge_attr_str = _build_attrs($self->{gedge_attrs});
-        push @result, (sprintf "%sedge%s;", $indent, $gedge_attr_str);
+        push @result, sprintf "%sedge%s;", $indent, $gedge_attr_str;
     }
 
     for my $node (@{$self->{nodes}}) {
         my $node_str = $node->as_string;
-        my $node_attr_str = _build_attrs($node->attrs);
-        push @result, (sprintf "%s%s%s;", $indent, $node_str, $node_attr_str);
+        my $node_attr_str = _build_attrs($node->attributes);
+        push @result, sprintf "%s%s%s;", $indent, $node_str, $node_attr_str;
     }
 
     for my $edge (@{$self->{edges}}) {
         my $edge_str = $edge->as_string;
-        my $edge_attr_str = _build_attrs($edge->attrs);
-        push @result, (sprintf "%s%s%s;", $indent, $edge_str, $edge_attr_str);
+        my $edge_attr_str = _build_attrs($edge->attributes);
+        push @result, sprintf "%s%s%s;", $indent, $edge_str, $edge_attr_str;
     }
 
     for my $graph (@{$self->{subgraphs}}) {
@@ -354,7 +354,7 @@ sub as_string {
         my ($type, $nodes) = @{$rank};
 
         my $node_str = join '; ', @{$nodes};
-        push @result, (sprintf "%s{ rank=%s; %s; }", $indent, $type, $node_str);
+        push @result, sprintf "%s{ rank=%s; %s; }", $indent, $type, $node_str;
     }
 
     push @result, "}\n";

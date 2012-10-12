@@ -7,10 +7,8 @@ use Carp ();
 sub new {
     my ($class, %args) = @_;
 
-    for my $key (qw/id attrs/) {
-        unless (exists $args{$key}) {
-            Carp::croak("missing mandatory parameter '$key'");
-        }
+    unless (exists $args{id}) {
+        Carp::croak("missing mandatory parameter 'id'");
     }
 
     my $id = delete $args{id};
@@ -18,11 +16,11 @@ sub new {
         Carp::croak("'id' paramter must not include underscores");
     }
 
-    my $attrs = delete $args{attrs} || {};
+    my $attrs = delete $args{attributes} || {};
 
     bless {
-        id    => $id,
-        attrs => $attrs,
+        id         => $id,
+        attributes => $attrs,
     }, $class;
 }
 
@@ -34,15 +32,15 @@ sub as_string {
 sub update_attributes {
     my ($self, $attrs) = @_;
 
-    my %old_attrs = %{$self->{attrs}};
-    $self->{attrs} = {
-        %old_attrs,
+    my %old_attributes = %{$self->{attributes}};
+    $self->{attributes} = {
+        %old_attributes,
         %{$attrs},
     };
 }
 
 # accessor
-sub id    { $_[0]->{id};    }
-sub attrs { $_[0]->{attrs}; }
+sub id         { $_[0]->{id};    }
+sub attributes { $_[0]->{attributes}; }
 
 1;
