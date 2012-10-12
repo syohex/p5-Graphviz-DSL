@@ -22,3 +22,8 @@ Syohei YOSHIDA
 syohex
 gmail
 Graph::Gviz
+DSL
+Graphviz
+gif
+png
+utf
