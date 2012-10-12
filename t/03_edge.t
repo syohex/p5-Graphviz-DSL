@@ -31,7 +31,6 @@ subtest 'accessor' => sub {
     is $edge->end_node_id, 'bar', "'end_node_id' accessor";
 };
 
-
 subtest 'invalid constructor' => sub {
     eval {
         Graph::Gviz::Edge->new;
