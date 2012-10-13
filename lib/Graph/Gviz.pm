@@ -538,7 +538,8 @@ Encoding of output DOT file. Default is I<utf-8>.
 
 =head3 C<< $graph->as_string >>
 
-Return DOT file as string.
+Return DOT file as string. This is same as strigify itself.
+Graph::Gviz overload stringify operation.
 
 =head1 SEE ALSO
 
