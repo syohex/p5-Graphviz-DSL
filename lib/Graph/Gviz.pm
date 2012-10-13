@@ -33,16 +33,10 @@ sub import {
     *{"$pkg\::edgeset"}  = sub { goto &edgeset  };
     *{"$pkg\::global"}   = sub { goto &global   };
     *{"$pkg\::rank"}     = sub { goto &rank     };
-    *{"$pkg\::subgraph"} = _build_subgraph();
+    *{"$pkg\::subgraph"} = (sub { sub (&) { goto &subgraph } })->();
 }
 
-sub _build_subgraph {
-    sub (&) {
-        goto &subgraph;
-    };
-}
-
-sub new {
+sub _new {
     my ($class, %args) = @_;
 
     my $name = delete $args{name} || 'G';
@@ -151,7 +145,7 @@ sub _edge {
 
     my $dummy = Graph::Gviz::Edge->new(
         id    => $id,
-        attrs => $attrs
+        attributes => $attrs
     );
 
     if (my $edge = $self->_find_edge($dummy->id)) {
@@ -164,12 +158,12 @@ sub _edge {
 }
 
 sub _build_graph {
-    my $self = shift;
+    my ($subgraph) = @_;
 
     sub (&) {
         my $code = shift;
 
-        $self = Graph::Gviz->new() unless defined $self;
+        my $self = defined $subgraph ? $subgraph : Graph::Gviz->_new();
 
         no warnings 'redefine';
 
@@ -183,21 +177,21 @@ sub _build_graph {
         local *edgeset  = sub { @{$self->{edges}} };
         local *global   = sub { $self->_update_attrs('graph_attrs', @_) };
         local *rank     = sub { $self->_rank(@_) };
-        local *subgraph = _build_real_subgraph($self);
+        local *subgraph = _build_subgraph($self);
 
         $code->();
         $self;
     }
 }
 
-sub _build_real_subgraph {
+sub _build_subgraph {
     my $parent = shift;
 
     sub (&) {
         my $code = shift;
         my $num  = scalar @{$parent->{subgraphs}};
 
-        my $self = Graph::Gviz->new(name => "cluster${num}", type => 'subgraph');
+        my $self = Graph::Gviz->_new(name => "cluster${num}", type => 'subgraph');
         my $graph = _build_graph($self);
 
         my $subgraph = $graph->($code);
@@ -209,11 +203,16 @@ sub _add {
     my ($self, @nodes_or_routes) = @_;
 
     if (scalar @nodes_or_routes == 1) {
-        node($nodes_or_routes[0]);
+        $self->_add_one_node($nodes_or_routes[0]);
         return;
     }
 
     while (my ($start, $end) = splice @nodes_or_routes, 0, 2) {
+        unless (defined $end) {
+            $self->_add_one_node($start);
+            return;
+        }
+
         ($start, $end) = map {
             ref($_) eq 'ARRAY' ? $_ : [$_];
         } ($start, $end);
@@ -223,6 +222,19 @@ sub _add {
             $self->_edge($edge_id);
         }
     }
+}
+
+sub _add_one_node {
+    my ($self, $node) = @_;
+
+    if (!ref($node)) {
+        $self->_node($node);
+    } elsif (ref $node eq 'ARRAY') {
+        $self->_node($_) for @{$node};
+    } else {
+        Carp::croak("First parameter should be Scalar or ArrayRef");
+    }
+    return;
 }
 
 sub _product {
@@ -260,8 +272,12 @@ sub save {
 
 sub _rank {
     my ($self, $type, @nodes) = @_;
-    my @types = qw/same min max source sink/;
 
+    unless (@nodes) {
+        Carp::croak("not specified nodes");
+    }
+
+    my @types = qw/same min max source sink/;
     unless ( grep { $type eq $_} @types) {
         Carp::croak("type must match any of '@types'");
     }
@@ -437,13 +453,27 @@ Graph::Gviz is Perl version of Ruby gem I<Gviz>.
 
 =head2 Method in DSL
 
-=head3 C<< add $node, [%attributes] >>
+=head3 C<< add, route >>
 
-Add node with C<%attributes>.
+Add nodes and them edges. C<route> is alias of C<add> function.
+You can call these methods like following.
 
-=head3 C<< route $node, [%attributes] >>
+=over
 
-C<route> is alias of C<add> function.
+=item C<< add $nodes >>
+
+Add C<$nodes> to this graph. C<$nodes> should be Scalar or ArrayRef.
+
+=item C<< add $node1, \@edges1, $node2, \@edges2 ... >>
+
+Add nodes and edges. C<$noden> should be Scalar or ArrayRef.
+For example:
+
+    add [qw/a b/], [qw/c d/]
+
+Add node I<a> and I<b> and add edge a->c, a->d, b->c, b->d.
+
+=back
 
 =head3 C<< node($node_id, [%attributes]) >>
 
