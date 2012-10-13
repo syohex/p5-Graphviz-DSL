@@ -1,0 +1,160 @@
+=encoding utf-8
+
+=for stopwords
+
+=head1 NAME
+
+Graph::Gviz - Graphviz Perl interface with DSL
+
+=head1 SYNOPSIS
+
+  use Graph::Gviz;
+
+  my $graph = graph {
+      route main => [qw/init parse cleanup printf/];
+      route init => 'make', parse => 'execute';
+      route execute => [qw/make compare printf /];
+
+      nodes colorscheme => 'piyg8', style => 'filled';
+
+      my $index = 1;
+      for my $n ( nodeset() ) {
+          node($n->id, fillcolor => $index++);
+      }
+
+      edges arrowhead => 'onormal', color => 'magenta4';
+      edge 'main_printf', arrowtail => 'diamond', color => '#3355FF';
+      global bgcolor => 'white';
+
+      node 'execute', shape => 'Mrecord',
+                      label => '{<x>execute | {a | b | c}}';
+      node 'printf',  shape => 'Mrecord',
+                      label => '{printf |<y> format}';
+
+      edge 'execute:x_printf:y';
+      rank 'same', 'cleanup', 'execute';
+
+      subgraph {
+          global label => 'SUB';
+          node 'init';
+          node 'make';
+      };
+  };
+
+  $graph->save(path => 'output', type => 'png', encoding => 'utf-8');
+
+=head1 DESCRIPTION
+
+Graph::Gviz is Perl version of Ruby gem I<Gviz>.
+
+=head1 INTERFACES
+
+=head2 Method in DSL
+
+=head3 C<< add, route >>
+
+Add nodes and them edges. C<route> is alias of C<add> function.
+You can call these methods like following.
+
+=over
+
+=item C<< add $nodes >>
+
+Add C<$nodes> to this graph. C<$nodes> should be Scalar or ArrayRef.
+
+=item C<< add $node1, \@edges1, $node2, \@edges2 ... >>
+
+Add nodes and edges. C<$noden> should be Scalar or ArrayRef.
+For example:
+
+    add [qw/a b/], [qw/c d/]
+
+Add node I<a> and I<b> and add edge a->c, a->d, b->c, b->d.
+
+=back
+
+=head3 C<< node($node_id, [%attributes]) >>
+
+Add node or update attribute of specified node.
+
+=head3 C<< edge($edge_id, [%attributes]) >>
+
+Add edge or update attribute of specified edge.
+
+=head3 C<< nodes(%attributes) >>
+
+Update attribute of all nodes.
+
+=head3 C<< edges(%attributes) >>
+
+Update attribute of all edges.
+
+=head3 C<< nodeset >>
+
+Return registered nodes.
+
+=head3 C<< edgeset >>
+
+Return registered edges.
+
+=head3 C<< global >>
+
+Update graph attribute.
+
+=head3 C<< rank >>
+
+Set rank.
+
+=head3 C<< subgraph($coderef) >>
+
+Create subgraph.
+
+=head2 Class Method
+
+=head3 C<< $graph->save(%args) >>
+
+Save graph as DOT file.
+
+C<%args> is:
+
+=over
+
+=item path
+
+Basename of output file.
+
+=item type
+
+Output image type, such as I<png>, I<gif> etc.
+C<Graph::Gviz> don't output image if you omit this attribute.
+
+=item encoding
+
+Encoding of output DOT file. Default is I<utf-8>.
+
+=back
+
+=head3 C<< $graph->as_string >>
+
+Return DOT file as string. This is same as strigify itself.
+Graph::Gviz overload stringify operation.
+
+=head1 SEE ALSO
+
+Gviz L<https://github.com/melborne/Gviz>
+
+Graphviz L<http://www.graphviz.org/>
+
+=head1 AUTHOR
+
+Syohei YOSHIDA E<lt>syohex@gmail.comE<gt>
+
+=head1 COPYRIGHT
+
+Copyright 2012- Syohei YOSHIDA
+
+=head1 LICENSE
+
+This library is free software; you can redistribute it and/or modify
+it under the same terms as Perl itself.
+

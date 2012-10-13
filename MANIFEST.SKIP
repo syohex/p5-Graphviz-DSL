@@ -15,3 +15,5 @@
 \.bs$
 MYMETA
 ^README.md$
+^README.pod$
+
