@@ -55,6 +55,24 @@ sub _new {
     }, $class;
 }
 
+sub name {
+    my ($self) = shift;
+
+    if (@_) {
+        return $self->{name} = $_[0];
+    }
+    return $self->{name};
+}
+
+sub type {
+    my ($self) = shift;
+
+    if (@_) {
+        return $self->{type} = $_[0];
+    }
+    return $self->{type};
+}
+
 sub _build_nodes {
     my $self = shift;
 
@@ -443,6 +461,7 @@ Graph::Gviz - Graphviz Perl interface with DSL
       };
   };
 
+  $graph->name('Sample');
   $graph->save(path => 'output', type => 'png', encoding => 'utf-8');
 
 =head1 DESCRIPTION
@@ -540,6 +559,20 @@ Encoding of output DOT file. Default is I<utf-8>.
 
 Return DOT file as string. This is same as stringify itself.
 Graph::Gviz overload stringify operation.
+
+=head2 Accessor
+
+=over
+
+=item name
+
+Graph name attribute(Default is 'G').
+
+=item type
+
+Graph type attribute(Default is 'digraph').
+
+=back
 
 =head1 SEE ALSO
 
