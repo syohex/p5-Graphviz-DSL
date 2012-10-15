@@ -1,5 +1,6 @@
 .gitignore
 Changes
+eg/sample.pl
 inc/Module/Install.pm
 inc/Module/Install/AuthorTests.pm
 inc/Module/Install/Base.pm
@@ -11,11 +12,18 @@ inc/Module/Install/Repository.pm
 inc/Module/Install/Win32.pm
 inc/Module/Install/WriteAll.pm
 lib/Graph/Gviz.pm
+lib/Graph/Gviz/Component.pm
+lib/Graph/Gviz/Edge.pm
+lib/Graph/Gviz/Node.pm
 Makefile.PL
 MANIFEST			This list of files
 META.yml
 README
 t/00_compile.t
+t/01_in_dsl.t
+t/02_node.t
+t/03_edge.t
+t/04_graph.t
 xt/01_spelling.t
 xt/02_perlcritic.t
 xt/03_pod.t
