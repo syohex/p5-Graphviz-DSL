@@ -5,6 +5,8 @@ use 5.008_001;
 
 use Carp ();
 use Encode ();
+use Scalar::Util qw/blessed/;
+
 use Graph::Gviz::Edge;
 use Graph::Gviz::Node;
 
@@ -54,6 +56,7 @@ sub _new {
         graph_attrs => [],
         subgraphs   => [],
         ranks       => [],
+        objects     => [],
     }, $class;
 }
 
@@ -132,10 +135,12 @@ sub _node {
     if (my $node = $self->_find_node($id)) {
         $node->update_attributes(\@attrs);
     } else {
-        push @{$self->{nodes}}, Graph::Gviz::Node->new(
+        my $node = Graph::Gviz::Node->new(
             id         => $id,
             attributes => \@attrs,
         );
+        push @{$self->{nodes}}, $node;
+        push @{$self->{objects}}, $node;
     }
 }
 
@@ -169,6 +174,7 @@ sub _edge {
     } else {
         push @{$self->{edges}}, $dummy;
         $self->_create_nodes;
+        push @{$self->{objects}}, $dummy;
     }
 }
 
@@ -213,6 +219,7 @@ sub _build_subgraph {
 
         my $subgraph = $graph->($code);
         push @{$parent->{subgraphs}}, $subgraph;
+        push @{$parent->{objects}}, $subgraph;
     };
 }
 
@@ -339,6 +346,28 @@ sub _build_attrs {
     }
 }
 
+my %print_func = (
+    'Graph::Gviz' => sub {
+        my $graph = shift;
+        my @lines = split /\n/, $graph->as_string;
+
+        my @results;
+        for my $line (@lines) {
+            chomp $line;
+            push @results, "  ${line}";
+        }
+        return @results;
+    },
+    'Graph::Gviz::Edge' => sub {
+        my $edge = shift;
+        sprintf "  %s%s;", $edge->as_string, _build_attrs($edge->attributes);
+    },
+    'Graph::Gviz::Node' => sub {
+        my $node = shift;
+        sprintf "  %s%s;", $node->as_string, _build_attrs($node->attributes);
+    },
+);
+
 sub as_string {
     my $self = shift;
 
@@ -362,25 +391,10 @@ sub as_string {
         push @result, sprintf "%sedge%s;", $indent, $gedge_attr_str;
     }
 
-    for my $node (@{$self->{nodes}}) {
-        my $node_str = $node->as_string;
-        my $node_attr_str = _build_attrs($node->attributes);
-        push @result, sprintf "%s%s%s;", $indent, $node_str, $node_attr_str;
-    }
-
-    for my $edge (@{$self->{edges}}) {
-        my $edge_str = $edge->as_string;
-        my $edge_attr_str = _build_attrs($edge->attributes);
-        push @result, sprintf "%s%s%s;", $indent, $edge_str, $edge_attr_str;
-    }
-
-    for my $graph (@{$self->{subgraphs}}) {
-        my @lines = split /\n/, $graph->as_string;
-
-        for my $line (@lines) {
-            chomp $line;
-            push @result, "${indent}${line}";
-        }
+    for my $object (@{$self->{objects}}) {
+        my $class = blessed $object;
+        Carp::croak("Invalid object") unless defined $class;
+        push @result, $print_func{$class}->($object);
     }
 
     for my $rank ( @{$self->{ranks}} ) {

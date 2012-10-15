@@ -202,15 +202,15 @@ subtest 'as_string' => sub {
 digraph G {
   main;
   init;
-  parse;
-  make;
-  execute;
-  compare;
   main -> init;
+  parse;
   main -> parse;
+  make;
   init -> make;
+  execute;
   parse -> execute;
   execute -> make;
+  compare;
   execute -> compare;
 }
 ...
