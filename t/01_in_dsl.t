@@ -5,7 +5,8 @@ use Test::More;
 use Graph::Gviz;
 
 subtest 'call outside graph function' => sub {
-    my @funcs = qw/route add node edge nodes edges nodeset edgeset global rank subgraph/;
+    my @funcs = qw/route add node edge nodes edges nodeset edgeset global rank
+                   name type subgraph/;
     for my $method (@funcs) {
         eval {
             Graph::Gviz->$method();

@@ -213,17 +213,20 @@ digraph G {
     is $graph->as_string, $expected, 'as_string';
 };
 
-subtest 'accessor' => sub {
+subtest 'set name' => sub {
     my $graph = graph {
-        route main => [qw/init parse/];
+        name 'test_graph';
     };
-    is $graph->name, 'G', 'Get graph name';
-    is $graph->type, 'digraph', 'Get graph type';
 
-    $graph->name('foo');
-    $graph->type('bar');
-    is $graph->name, 'foo', 'Set graph name';
-    is $graph->type, 'bar', 'Set graph type';
+    is $graph->{name}, 'test_graph', 'Set graph name';
+};
+
+subtest 'set type' => sub {
+    my $graph = graph {
+        type 'graph';
+    };
+
+    is $graph->{type}, 'graph', 'Set graph type';
 };
 
 done_testing;

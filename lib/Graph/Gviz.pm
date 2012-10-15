@@ -33,6 +33,8 @@ sub import {
     *{"$pkg\::edgeset"}  = sub { goto &edgeset  };
     *{"$pkg\::global"}   = sub { goto &global   };
     *{"$pkg\::rank"}     = sub { goto &rank     };
+    *{"$pkg\::name"}     = sub { goto &name     };
+    *{"$pkg\::type"}     = sub { goto &type     };
     *{"$pkg\::subgraph"} = (sub { sub (&) { goto &subgraph } })->();
 }
 
@@ -55,21 +57,15 @@ sub _new {
     }, $class;
 }
 
-sub name {
-    my ($self) = shift;
-
-    if (@_) {
-        return $self->{name} = $_[0];
-    }
+sub _name {
+    my ($self, $name) = @_;
+    $self->{name} = $name;
     return $self->{name};
 }
 
-sub type {
-    my ($self) = shift;
-
-    if (@_) {
-        return $self->{type} = $_[0];
-    }
+sub _type {
+    my ($self, $type) = @_;
+    $self->{type} = $type;
     return $self->{type};
 }
 
@@ -195,6 +191,8 @@ sub _build_graph {
         local *edgeset  = sub { @{$self->{edges}} };
         local *global   = sub { $self->_update_attrs('graph_attrs', @_) };
         local *rank     = sub { $self->_rank(@_) };
+        local *name     = sub { $self->_name(@_) };
+        local *type     = sub { $self->_type(@_) };
         local *subgraph = _build_subgraph($self);
 
         $code->();
@@ -413,6 +411,8 @@ sub __stub {
 *global   = __stub 'global';
 *rank     = __stub 'rank';
 *subgraph = __stub 'subgraph';
+*name     = __stub 'name';
+*type     = __stub 'type';
 
 1;
 
@@ -431,6 +431,8 @@ Graph::Gviz - Graphviz Perl interface with DSL
   use Graph::Gviz;
 
   my $graph = graph {
+      name 'Sample';
+
       route main => [qw/init parse cleanup printf/];
       route init => 'make', parse => 'execute';
       route execute => [qw/make compare printf /];
@@ -461,7 +463,6 @@ Graph::Gviz - Graphviz Perl interface with DSL
       };
   };
 
-  $graph->name('Sample');
   $graph->save(path => 'output', type => 'png', encoding => 'utf-8');
 
 =head1 DESCRIPTION
@@ -471,6 +472,14 @@ Graph::Gviz is Perl version of Ruby gem I<Gviz>.
 =head1 INTERFACES
 
 =head2 Method in DSL
+
+=head3 C<< name $name >>
+
+Set C<$name> as graph name. Default is 'G'.
+
+=head3 C<< type $type >>
+
+Set C<$type> as graph type. Default is 'digraph'.
 
 =head3 C<< add, route >>
 
@@ -559,20 +568,6 @@ Encoding of output DOT file. Default is I<utf-8>.
 
 Return DOT file as string. This is same as stringify itself.
 Graph::Gviz overload stringify operation.
-
-=head2 Accessor
-
-=over
-
-=item name
-
-Graph name attribute(Default is 'G').
-
-=item type
-
-Graph type attribute(Default is 'digraph').
-
-=back
 
 =head1 SEE ALSO
 

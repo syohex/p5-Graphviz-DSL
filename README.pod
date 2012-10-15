@@ -11,6 +11,8 @@ Graph::Gviz - Graphviz Perl interface with DSL
   use Graph::Gviz;
 
   my $graph = graph {
+      name 'Sample';
+
       route main => [qw/init parse cleanup printf/];
       route init => 'make', parse => 'execute';
       route execute => [qw/make compare printf /];
@@ -41,7 +43,6 @@ Graph::Gviz - Graphviz Perl interface with DSL
       };
   };
 
-  $graph->name('Sample');
   $graph->save(path => 'output', type => 'png', encoding => 'utf-8');
 
 =head1 DESCRIPTION
@@ -51,6 +52,14 @@ Graph::Gviz is Perl version of Ruby gem I<Gviz>.
 =head1 INTERFACES
 
 =head2 Method in DSL
+
+=head3 C<< name $name >>
+
+Set C<$name> as graph name. Default is 'G'.
+
+=head3 C<< type $type >>
+
+Set C<$type> as graph type. Default is 'digraph'.
 
 =head3 C<< add, route >>
 
@@ -139,20 +148,6 @@ Encoding of output DOT file. Default is I<utf-8>.
 
 Return DOT file as string. This is same as stringify itself.
 Graph::Gviz overload stringify operation.
-
-=head2 Accessor
-
-=over
-
-=item name
-
-Graph name attribute(Default is 'G').
-
-=item type
-
-Graph type attribute(Default is 'digraph').
-
-=back
 
 =head1 SEE ALSO
 
