@@ -3,9 +3,6 @@ use strict;
 use warnings;
 
 use lib qw(../lib);
-
-use utf8;
-use Text::CSV_XS;
 use Graph::Gviz;
 
 my $graph = graph {
