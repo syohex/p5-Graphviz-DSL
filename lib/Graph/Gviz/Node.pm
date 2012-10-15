@@ -3,6 +3,7 @@ use strict;
 use warnings;
 
 use Carp ();
+use parent qw/Graph::Gviz::Component/;
 
 sub new {
     my ($class, %args) = @_;
@@ -16,7 +17,10 @@ sub new {
         Carp::croak("'id' paramter must not include underscores");
     }
 
-    my $attrs = delete $args{attributes} || {};
+    my $attrs = delete $args{attributes} || [];
+    unless (ref $attrs eq 'ARRAY') {
+        Carp::croak("'attributes' parameter should be ArrayRef");
+    }
 
     bless {
         id         => $id,
@@ -32,11 +36,20 @@ sub as_string {
 sub update_attributes {
     my ($self, $attrs) = @_;
 
-    my %old_attributes = %{$self->{attributes}};
-    $self->{attributes} = {
-        %old_attributes,
-        %{$attrs},
-    };
+ OUTER:
+    for my $attr (@{$attrs}) {
+        my ($key, $val) = @{$attr};
+        for my $old_attr (@{$self->{attributes}}) {
+            my ($old_key, $old_val) = @{$old_attr};
+
+            if ($key eq $old_key) {
+                $old_attr->[1] = $val;
+                next OUTER;
+            }
+        }
+
+        push @{$self->{attributes}}, $attr;
+    }
 }
 
 # accessor

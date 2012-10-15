@@ -2,6 +2,8 @@ package Graph::Gviz::Edge;
 use strict;
 use warnings;
 
+use parent qw/Graph::Gviz::Component/;
+
 use Carp ();
 
 sub new {
@@ -32,16 +34,6 @@ sub as_string {
 sub nodes {
     my $self = shift;
     return [$self->{start}, $self->{end}];
-}
-
-sub update_attributes {
-    my ($self, $attrs) = @_;
-
-    my %old_attrs = %{$self->{attributes}};
-    $self->{attributes} = {
-        %old_attrs,
-        %{$attrs},
-    };
 }
 
 sub update_id_info {
@@ -78,8 +70,6 @@ sub _parse_id {
 }
 
 # accessor
-sub id            { $_[0]->{id}    }
-sub attributes    { $_[0]->{attributes} }
 sub start_node_id { $_[0]->{start} }
 sub end_node_id   { $_[0]->{end}   }
 

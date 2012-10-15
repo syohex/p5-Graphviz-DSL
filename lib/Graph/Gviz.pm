@@ -49,9 +49,9 @@ sub _new {
         type        => $type,
         edges       => [],
         nodes       => [],
-        gnode_attrs => {},
-        gedge_attrs => {},
-        graph_attrs => {},
+        gnode_attrs => [],
+        gedge_attrs => [],
+        graph_attrs => [],
         subgraphs   => [],
         ranks       => [],
     }, $class;
@@ -78,13 +78,21 @@ sub _build_nodes {
 }
 
 sub _update_attrs {
-    my ($self, $key, %args) = @_;
+    my ($self, $attr_key, @args) = @_;
 
-    my %old_attrs = %{$self->{$key}};
-    $self->{$key} = {
-        %old_attrs,
-        %args,
-    };
+ OUTER:
+    while (my ($key, $val) = splice @args, 0, 2) {
+        for my $old_attr (@{$self->{$attr_key}}) {
+            my ($old_key, $old_val) = @{$old_attr};
+
+            if ($key eq $old_key) {
+                $old_attr->[1] = $val;
+                next OUTER;
+            }
+        }
+
+        push @{$self->{$attr_key}}, [$key, $val];
+    }
 }
 
 sub _create_node {
@@ -105,16 +113,28 @@ sub _find_node {
     return;
 }
 
+sub _to_key_value_pair {
+    my @args = @_;
+
+    my @pairs;
+    while (my ($k, $v) = splice @args, 0, 2) {
+        push @pairs, [$k, $v];
+    }
+
+    return @pairs;
+}
+
 sub _node {
-    my ($self, $id, %args) = @_;
-    my $attrs = %args ? {%args} : {};
+    my ($self, $id, @args) = @_;
+
+    my @attrs = _to_key_value_pair(@args);
 
     if (my $node = $self->_find_node($id)) {
-        $node->update_attributes($attrs);
+        $node->update_attributes(\@attrs);
     } else {
         push @{$self->{nodes}}, Graph::Gviz::Node->new(
             id         => $id,
-            attributes => $attrs
+            attributes => \@attrs,
         );
     }
 }
@@ -130,20 +150,21 @@ sub _find_edge {
 }
 
 sub _edge {
-    my ($self, $id, %args) = @_;
-    my $attrs = %args ? { %args } : {};
+    my ($self, $id, @args) = @_;
+
+    my @attrs = _to_key_value_pair(@args);
 
     unless ($id =~ m{._.}) {
         Carp::croak("'id' should be joined with '_'");
     }
 
     my $dummy = Graph::Gviz::Edge->new(
-        id    => $id,
-        attributes => $attrs
+        id         => $id,
+        attributes => \@attrs,
     );
 
     if (my $edge = $self->_find_edge($dummy->id)) {
-        $edge->update_attributes($attrs);
+        $edge->update_attributes(\@attrs);
         $edge->update_id_info($id) if $edge->id ne $id;
     } else {
         push @{$self->{edges}}, $dummy;
@@ -296,15 +317,15 @@ sub _create_nodes {
 sub _build_attrs {
     my ($attrs, $is_join) = @_;
 
-    return '' unless %{$attrs};
+    return '' unless @{$attrs};
 
     unless (defined $is_join) {
         $is_join = 1;
     }
 
     my @strs;
-    for my $k (sort keys %{$attrs}) {
-        my $v = $attrs->{$k};
+    for my $attr (@{$attrs}) {
+        my ($k, $v) = @{$attr};
         my $str = qq{$k="$v"};
         $str =~ s{\n}{\\n}g;
         push @strs, $str;
@@ -326,17 +347,17 @@ sub as_string {
 
     push @result, sprintf "%s %s {", $self->{type}, $self->{name};
 
-    if (%{$self->{graph_attrs}}) {
+    if (@{$self->{graph_attrs}}) {
         my $graph_attrs_str = join ";\n$indent", @{_build_attrs($self->{graph_attrs}, 0)};
         push @result, sprintf "%s%s;", $indent, $graph_attrs_str;
     }
 
-    if (%{$self->{gnode_attrs}}) {
+    if (@{$self->{gnode_attrs}}) {
         my $gnode_attr_str = _build_attrs($self->{gnode_attrs});
         push @result, sprintf "%snode%s;", $indent, $gnode_attr_str;
     }
 
-    if (%{$self->{gedge_attrs}}) {
+    if (@{$self->{gedge_attrs}}) {
         my $gedge_attr_str = _build_attrs($self->{gedge_attrs});
         push @result, sprintf "%sedge%s;", $indent, $gedge_attr_str;
     }

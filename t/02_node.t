@@ -11,7 +11,7 @@ subtest 'constructor' => sub {
 };
 
 subtest 'accessor' => sub {
-    my $attrs = { a => 'foo', b => 'bar' };
+    my $attrs = [[a => 'foo'], [b => 'bar']];
     my $node = Graph::Gviz::Node->new(
         id         => 'foo',
         attributes => $attrs,
@@ -24,12 +24,12 @@ subtest 'accessor' => sub {
 subtest 'update attributes' => sub {
     my $node = Graph::Gviz::Node->new(
         id         => 'foo',
-        attributes => { foo => 100, bar => 200 },
+        attributes => [[foo => 100], [bar => 200]],
     );
 
-    $node->update_attributes({ foo => 300, hoge => 400 });
-    is_deeply $node->attributes,
-              { foo => 300, bar => 200, hoge => 400 }, 'update attributes';
+    $node->update_attributes([[foo => 300], [hoge => 400]]);
+    my $expected = [[foo => 300], [bar => 200], [hoge => 400]];
+    is_deeply $node->attributes, $expected, 'update attributes';
 };
 
 subtest 'as_string' => sub {
@@ -46,7 +46,7 @@ subtest 'missing id parameter' => sub {
 
 subtest 'invalid id parameter' => sub {
     eval {
-        my $node = Graph::Gviz::Node->new(id => 'foo_bar', attrs => {});
+        my $node = Graph::Gviz::Node->new(id => 'foo_bar', attrs => []);
     };
     like $@, qr/must not include underscores/;
 };

@@ -46,11 +46,12 @@ subtest 'return nodes pair' => sub {
 };
 
 subtest 'update attributes' => sub {
-    my $attrs = { a => 100, b => 200 };
+    my $attrs = [[a => 100], [b => 200]];
     my $edge = Graph::Gviz::Edge->new(id => 'foo_bar', attributes => $attrs);
 
-    $edge->update_attributes({ a => 300, c => 400 });
-    is_deeply $edge->attributes, { a => 300, b => 200, c => 400 }, 'update attributes';
+    $edge->update_attributes([[a => 300], [c => 400]]);
+    my $expected = [[a => 300], [b => 200], [c => 400]];
+    is_deeply $edge->attributes, $expected, 'update attributes';
 };
 
 subtest 'update id info', sub {

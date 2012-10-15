@@ -49,44 +49,48 @@ subtest 'add multiple nodes and edges(odd args)' => sub {
 };
 
 subtest 'add new node' => sub {
-    my $attrs = { a => 'bar', b => 'hoge' };
-    my $graph = graph { node 'foo', %{$attrs} };
+    my @attrs = (a => 'bar', b => 'hoge');
+    my $graph = graph { node 'foo', @attrs };
     is scalar @{$graph->{nodes}}, 1, 'add new node';
 
     my $node = $graph->{nodes}->[0];
     is $node->id, 'foo', 'node id';
-    is_deeply $node->attributes, $attrs, 'node attributes';
+
+    my $expected = [[a => 'bar'], [b => 'hoge']];
+    is_deeply $node->attributes, $expected, 'node attributes';
 };
 
 subtest 'update node' => sub {
-    my $attrs = { a => 'bar', b => 'hoge' };
+    my @attrs = (a => 'bar', b => 'hoge');
     my $graph = graph {
-        node 'foo', %{$attrs};
+        node 'foo', @attrs;
         node 'foo', b => 'poo', c => 'moo';
     };
     is scalar @{$graph->{nodes}}, 1, 'not add node';
 
     my $node = $graph->{nodes}->[0];
     is $node->id, 'foo', 'not change node id';
-    my $expected = { a => 'bar', b => 'poo', c => 'moo' };
+    my $expected = [[a => 'bar'], [b => 'poo'], [c => 'moo']];
     is_deeply $node->attributes, $expected, 'update node attributes';
 };
 
 subtest 'add new edge' => sub {
-    my $attrs = { a => 'bar', b => 'hoge' };
-    my $graph = graph { edge 'foo_bar', %{$attrs} };
+    my @attrs = (a => 'bar', b => 'hoge');
+    my $graph = graph { edge 'foo_bar', @attrs };
     is scalar @{$graph->{nodes}}, 2, 'add new node';
     is scalar @{$graph->{edges}}, 1, 'add new edge';
 
     my $edge = $graph->{edges}->[0];
     is $edge->id, 'foo_bar', 'edge id';
-    is_deeply $edge->attributes, $attrs, 'edge attributes';
+
+    my $expected = [[a => 'bar'], [b => 'hoge']];
+    is_deeply $edge->attributes, $expected, 'edge attributes';
 };
 
-subtest 'updates edge' => sub {
-    my $attrs = { a => 'bar', b => 'hoge' };
+subtest 'update edge' => sub {
+    my @attrs = (a => 'bar', b => 'hoge');
     my $graph = graph {
-        edge 'foo_bar', %{$attrs};
+        edge 'foo_bar', @attrs;
         edge 'foo:x_bar:y', b => 'wao', c => 'moo';
     };
     is scalar @{$graph->{nodes}}, 2, 'not change nodes';
@@ -97,7 +101,7 @@ subtest 'updates edge' => sub {
     is $edge->{start_port}, 'x', 'set start_port';
     is $edge->{end_port}, 'y', 'set end_port';
 
-    my $expected = { a => 'bar', b => 'wao', c => 'moo' };
+    my $expected = [[a => 'bar'], [b => 'wao'], [c => 'moo']];
     is_deeply $edge->attributes, $expected, 'update edge attributes';
 };
 
@@ -105,14 +109,15 @@ subtest 'update global nodes attributes' => sub {
     my $graph = graph {
         nodes name => 'foo', age => '10';
     };
-    is_deeply $graph->{gnode_attrs}, { name => 'foo', age => '10' };
+    my $expected = [[name => 'foo'], [age => '10']];
+    is_deeply $graph->{gnode_attrs}, $expected, 'global attribute';
 };
 
 subtest 'update global edges attributes' => sub {
     my $graph = graph {
         edges label => 'hoge', color => 'blue';
     };
-    is_deeply $graph->{gedge_attrs}, { label => 'hoge', color => 'blue' };
+    is_deeply $graph->{gedge_attrs}, [[label => 'hoge'], [color => 'blue']];
 };
 
 subtest 'nodeset' => sub {
@@ -139,7 +144,7 @@ subtest 'update graph global attributes' => sub {
     my $graph = graph {
         global name => 'japan', year => '1492';
     };
-    is_deeply $graph->{graph_attrs}, { name => 'japan', year => '1492' };
+    is_deeply $graph->{graph_attrs}, [[name => 'japan'], [year => '1492']];
 };
 
 subtest 'rank' => sub {
@@ -148,7 +153,7 @@ subtest 'rank' => sub {
         rank 'same', 'foo', 'bar';
     };
     is scalar @{$graph->{ranks}}, 1, 'add rank';
-    is_deeply $graph->{ranks}->[0], ['same', [qw/foo bar/]];
+    is_deeply $graph->{ranks}->[0], ['same', [qw/foo bar/]], 'set rank';
 
     for my $type (qw/same min max source sink/) {
         my $g = graph { route $type, 'foo' };
