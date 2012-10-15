@@ -87,26 +87,6 @@ sub _update_attrs {
     };
 }
 
-sub _update_gnode_attrs {
-    my ($self, %args) = @_;
-
-    my %old_attrs = %{$self->{gnode_attrs}};
-    $self->{gnode_attrs} = {
-        %old_attrs,
-        %args,
-    };
-}
-
-sub _update_gedge_attrs {
-    my ($self, %args) = @_;
-
-    my %old_attrs = %{$self->{gedge_attrs}};
-    $self->{gedge_attrs} = {
-        %old_attrs,
-        %args,
-    };
-}
-
 sub _create_node {
     my $self = shift;
 
