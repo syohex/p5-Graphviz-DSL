@@ -1,4 +1,4 @@
-package Graph::Gviz;
+package Graphviz::DSL;
 use strict;
 use warnings;
 use 5.008_001;
@@ -8,8 +8,8 @@ use Encode ();
 use Scalar::Util qw/blessed/;
 use File::Which ();
 
-use Graph::Gviz::Edge;
-use Graph::Gviz::Node;
+use Graphviz::DSL::Edge;
+use Graphviz::DSL::Node;
 
 our $VERSION = '0.01';
 
@@ -136,7 +136,7 @@ sub _node {
     if (my $node = $self->_find_node($id)) {
         $node->update_attributes(\@attrs);
     } else {
-        my $node = Graph::Gviz::Node->new(
+        my $node = Graphviz::DSL::Node->new(
             id         => $id,
             attributes => \@attrs,
         );
@@ -164,7 +164,7 @@ sub _edge {
         Carp::croak("'id' should be joined with '_'");
     }
 
-    my $dummy = Graph::Gviz::Edge->new(
+    my $dummy = Graphviz::DSL::Edge->new(
         id         => $id,
         attributes => \@attrs,
     );
@@ -185,7 +185,7 @@ sub _build_graph {
     sub (&) {
         my $code = shift;
 
-        my $self = defined $subgraph ? $subgraph : Graph::Gviz->_new();
+        my $self = defined $subgraph ? $subgraph : Graphviz::DSL->_new();
 
         no warnings 'redefine';
 
@@ -215,7 +215,7 @@ sub _build_subgraph {
         my $code = shift;
         my $num  = scalar @{$parent->{subgraphs}};
 
-        my $self = Graph::Gviz->_new(name => "cluster${num}", type => 'subgraph');
+        my $self = Graphviz::DSL->_new(name => "cluster${num}", type => 'subgraph');
         my $graph = _build_graph($self);
 
         my $subgraph = $graph->($code);
@@ -355,7 +355,7 @@ sub _build_attrs {
 }
 
 my %print_func = (
-    'Graph::Gviz' => sub {
+    'Graphviz::DSL' => sub {
         my $graph = shift;
         my @lines = split /\n/, $graph->as_string;
 
@@ -366,11 +366,11 @@ my %print_func = (
         }
         return @results;
     },
-    'Graph::Gviz::Edge' => sub {
+    'Graphviz::DSL::Edge' => sub {
         my $edge = shift;
         sprintf "  %s%s;", $edge->as_string, _build_attrs($edge->attributes);
     },
-    'Graph::Gviz::Node' => sub {
+    'Graphviz::DSL::Node' => sub {
         my $node = shift;
         sprintf "  %s%s;", $node->as_string, _build_attrs($node->attributes);
     },
@@ -447,11 +447,11 @@ __END__
 
 =head1 NAME
 
-Graph::Gviz - Graphviz Perl interface with DSL
+Graphviz::DSL - Graphviz Perl interface with DSL
 
 =head1 SYNOPSIS
 
-  use Graph::Gviz;
+  use Graphviz::DSL;
 
   my $graph = graph {
       name 'Sample';
@@ -490,7 +490,7 @@ Graph::Gviz - Graphviz Perl interface with DSL
 
 =head1 DESCRIPTION
 
-Graph::Gviz is Perl version of Ruby gem I<Gviz>.
+Graphviz::DSL is Perl version of Ruby gem I<Gviz>.
 
 =head1 INTERFACES
 
@@ -580,7 +580,7 @@ Basename of output file.
 
 Output image type, such as I<png>, I<gif>, if you install Graphviz(dot command).
 If I<dot> command is not found, it generate only dot file.
-C<Graph::Gviz> don't output image if you omit this attribute.
+C<Graphviz::DSL> don't output image if you omit this attribute.
 
 =item encoding
 
@@ -591,7 +591,7 @@ Encoding of output DOT file. Default is I<utf-8>.
 =head3 C<< $graph->as_string >>
 
 Return DOT file as string. This is same as stringify itself.
-Graph::Gviz overload stringify operation.
+Graphviz::DSL overload stringify operation.
 
 =head1 SEE ALSO
 
