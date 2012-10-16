@@ -4,6 +4,8 @@ use warnings;
 
 use parent qw/Graphviz::DSL::Component/;
 
+use Carp ();
+
 sub new {
     my ($class, %args) = @_;
 
