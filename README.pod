@@ -47,7 +47,11 @@ Graphviz::DSL - Graphviz Perl interface with DSL
 
 =head1 DESCRIPTION
 
-Graphviz::DSL is Perl version of Ruby gem I<Gviz>.
+Graphviz::DSL is Perl version of Ruby gem I<Gviz>. This module provide
+DSL for generating DOT file(and image if you install Graphviz dot command).
+Outputted DOT file may be similar to your DSL, because Graphviz::DSL try to
+keep objects order in DSL(Order of objects in DSL is very important. If you
+change some objects order, then output image may be changed).
 
 =head1 INTERFACES
 
