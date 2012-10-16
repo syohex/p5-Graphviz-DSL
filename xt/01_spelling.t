@@ -21,7 +21,8 @@ __DATA__
 Syohei YOSHIDA
 syohex
 gmail
-Graph::Gviz
+Gviz
+Graphviz::DSL
 DSL
 Graphviz
 gif

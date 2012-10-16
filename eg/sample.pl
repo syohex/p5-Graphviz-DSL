@@ -3,7 +3,7 @@ use strict;
 use warnings;
 
 use lib qw(../lib);
-use Graph::Gviz;
+use Graphviz::DSL;
 
 my $graph = graph {
     subgraph {
