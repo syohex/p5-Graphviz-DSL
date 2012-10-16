@@ -4,11 +4,11 @@
 
 =head1 NAME
 
-Graph::Gviz - Graphviz Perl interface with DSL
+Graphviz::DSL - Graphviz Perl interface with DSL
 
 =head1 SYNOPSIS
 
-  use Graph::Gviz;
+  use Graphviz::DSL;
 
   my $graph = graph {
       name 'Sample';
@@ -47,7 +47,7 @@ Graph::Gviz - Graphviz Perl interface with DSL
 
 =head1 DESCRIPTION
 
-Graph::Gviz is Perl version of Ruby gem I<Gviz>.
+Graphviz::DSL is Perl version of Ruby gem I<Gviz>.
 
 =head1 INTERFACES
 
@@ -123,7 +123,7 @@ Create subgraph.
 
 =head3 C<< $graph->save(%args) >>
 
-Save graph as DOT file. You need I<dot> command.
+Save graph as DOT file.
 
 C<%args> is:
 
@@ -135,8 +135,9 @@ Basename of output file.
 
 =item type
 
-Output image type, such as I<png>, I<gif> etc.
-C<Graph::Gviz> don't output image if you omit this attribute.
+Output image type, such as I<png>, I<gif>, if you install Graphviz(dot command).
+If I<dot> command is not found, it generate only dot file.
+C<Graphviz::DSL> don't output image if you omit this attribute.
 
 =item encoding
 
@@ -147,7 +148,7 @@ Encoding of output DOT file. Default is I<utf-8>.
 =head3 C<< $graph->as_string >>
 
 Return DOT file as string. This is same as stringify itself.
-Graph::Gviz overload stringify operation.
+Graphviz::DSL overload stringify operation.
 
 =head1 SEE ALSO
 
