@@ -11,10 +11,10 @@ inc/Module/Install/Metadata.pm
 inc/Module/Install/Repository.pm
 inc/Module/Install/Win32.pm
 inc/Module/Install/WriteAll.pm
-lib/Graph/Gviz.pm
-lib/Graph/Gviz/Component.pm
-lib/Graph/Gviz/Edge.pm
-lib/Graph/Gviz/Node.pm
+lib/Graphviz/DSL.pm
+lib/Graphviz/DSL/Component.pm
+lib/Graphviz/DSL/Edge.pm
+lib/Graphviz/DSL/Node.pm
 Makefile.PL
 MANIFEST			This list of files
 META.yml
