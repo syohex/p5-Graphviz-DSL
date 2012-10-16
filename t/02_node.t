@@ -2,17 +2,17 @@ use strict;
 use warnings;
 use Test::More;
 
-use Graph::Gviz::Node;
+use Graphviz::DSL::Node;
 
 subtest 'constructor' => sub {
-    my $node = Graph::Gviz::Node->new(id => 'foo');
+    my $node = Graphviz::DSL::Node->new(id => 'foo');
     ok $node, 'constructor';
-    isa_ok $node, 'Graph::Gviz::Node';
+    isa_ok $node, 'Graphviz::DSL::Node';
 };
 
 subtest 'accessor' => sub {
     my $attrs = [[a => 'foo'], [b => 'bar']];
-    my $node = Graph::Gviz::Node->new(
+    my $node = Graphviz::DSL::Node->new(
         id         => 'foo',
         attributes => $attrs,
     );
@@ -22,7 +22,7 @@ subtest 'accessor' => sub {
 };
 
 subtest 'update attributes' => sub {
-    my $node = Graph::Gviz::Node->new(
+    my $node = Graphviz::DSL::Node->new(
         id         => 'foo',
         attributes => [[foo => 100], [bar => 200]],
     );
@@ -33,20 +33,20 @@ subtest 'update attributes' => sub {
 };
 
 subtest 'as_string' => sub {
-    my $node = Graph::Gviz::Node->new(id => 'foo');
+    my $node = Graphviz::DSL::Node->new(id => 'foo');
     is $node->as_string, 'foo', "output of as_string";
 };
 
 subtest 'missing id parameter' => sub {
     eval {
-        my $node = Graph::Gviz::Node->new();
+        my $node = Graphviz::DSL::Node->new();
     };
     like $@, qr/missing mandatory parameter 'id'/;
 };
 
 subtest 'invalid id parameter' => sub {
     eval {
-        my $node = Graph::Gviz::Node->new(id => 'foo_bar', attrs => []);
+        my $node = Graphviz::DSL::Node->new(id => 'foo_bar', attrs => []);
     };
     like $@, qr/must not include underscores/;
 };

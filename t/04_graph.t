@@ -2,12 +2,12 @@ use strict;
 use warnings;
 use Test::More;
 
-use Graph::Gviz;
+use Graphviz::DSL;
 
 subtest 'internal constructor' => sub {
-    my $graph = Graph::Gviz->_new();
+    my $graph = Graphviz::DSL->_new();
     ok $graph, 'constructor';
-    isa_ok $graph, 'Graph::Gviz';
+    isa_ok $graph, 'Graphviz::DSL';
 
     is $graph->{name}, 'G', 'default graph name';
     is $graph->{type}, 'digraph', 'default graph type';
@@ -188,7 +188,7 @@ subtest 'subgraph' => sub {
 
     my $subgraph = $graph->{subgraphs}->[0];
     ok $subgraph, 'defined subgraph';
-    isa_ok $subgraph, "Graph::Gviz", 'subgraph is-a Graph::Gviz';
+    isa_ok $subgraph, "Graphviz::DSL", 'subgraph is-a Graphviz::DSL';
 };
 
 subtest 'as_string' => sub {

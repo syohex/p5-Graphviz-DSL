@@ -1,4 +1,4 @@
 use strict;
 use Test::More tests => 1;
 
-BEGIN { use_ok 'Graph::Gviz' }
+BEGIN { use_ok 'Graphviz::DSL' }
