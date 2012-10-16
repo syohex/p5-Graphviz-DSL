@@ -6,6 +6,7 @@ use 5.008_001;
 use Carp ();
 use Encode ();
 use Scalar::Util qw/blessed/;
+use File::Which ();
 
 use Graph::Gviz::Edge;
 use Graph::Gviz::Node;
@@ -287,7 +288,14 @@ sub save {
     close $fh;
 
     if ($type) {
-        my $cmd_str = sprintf "dot -T%s %s -o %s.%s", $type, $dotfile, $path, $type;
+        my $dot = File::Which::which('dot');
+        unless (defined $dot) {
+            Carp::carp("Cannot generate image. Please install Graphviz(dot command).");
+            return;
+        }
+
+        my $output = "${path}.${type}";
+        my $cmd_str = sprintf "%s -T%s %s -o %s", $dot, $type, $dotfile, $output;
         my @cmd = split /\s/, $cmd_str;
 
         system(@cmd) == 0 or Carp::croak("Failed command: '@cmd'");
@@ -558,7 +566,7 @@ Create subgraph.
 
 =head3 C<< $graph->save(%args) >>
 
-Save graph as DOT file. You need I<dot> command.
+Save graph as DOT file.
 
 C<%args> is:
 
@@ -570,7 +578,8 @@ Basename of output file.
 
 =item type
 
-Output image type, such as I<png>, I<gif> etc.
+Output image type, such as I<png>, I<gif>, if you install Graphviz(dot command).
+If I<dot> command is not found, it generate only dot file.
 C<Graph::Gviz> don't output image if you omit this attribute.
 
 =item encoding

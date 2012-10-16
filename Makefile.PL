@@ -6,6 +6,7 @@ name 'Graph-Gviz';
 all_from 'lib/Graph/Gviz.pm';
 
 requires 'parent';
+requires 'File::Which';
 
 author_tests('xt');
 auto_set_repository();
