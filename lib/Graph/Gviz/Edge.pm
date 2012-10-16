@@ -1,8 +1,8 @@
-package Graph::Gviz::Edge;
+package Graphviz::DSL::Edge;
 use strict;
 use warnings;
 
-use parent qw/Graph::Gviz::Component/;
+use parent qw/Graphviz::DSL::Component/;
 
 use Carp ();
 

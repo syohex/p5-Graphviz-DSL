@@ -1,4 +1,4 @@
-package Graph::Gviz::Component;
+package Graphviz::DSL::Component;
 use strict;
 use warnings;
 

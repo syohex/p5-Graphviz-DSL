@@ -1,9 +1,8 @@
-package Graph::Gviz::Node;
+package Graphviz::DSL::Node;
 use strict;
 use warnings;
 
-use Carp ();
-use parent qw/Graph::Gviz::Component/;
+use parent qw/Graphviz::DSL::Component/;
 
 sub new {
     my ($class, %args) = @_;
