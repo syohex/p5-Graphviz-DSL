@@ -4,10 +4,10 @@ use Test::More;
 
 use Graphviz::DSL;
 
-subtest 'internal constructor' => sub {
-    my $graph = Graphviz::DSL->_new();
+subtest 'Graph constructor' => sub {
+    my $graph = Graphviz::DSL::Graph->new();
     ok $graph, 'constructor';
-    isa_ok $graph, 'Graphviz::DSL';
+    isa_ok $graph, 'Graphviz::DSL::Graph';
 
     is $graph->{name}, 'G', 'default graph name';
     is $graph->{type}, 'digraph', 'default graph type';
@@ -188,7 +188,7 @@ subtest 'subgraph' => sub {
 
     my $subgraph = $graph->{subgraphs}->[0];
     ok $subgraph, 'defined subgraph';
-    isa_ok $subgraph, "Graphviz::DSL", 'subgraph is-a Graphviz::DSL';
+    isa_ok $subgraph, "Graphviz::DSL::Graph", 'subgraph is-a Graphviz::DSL::Graph';
 };
 
 subtest 'as_string' => sub {
