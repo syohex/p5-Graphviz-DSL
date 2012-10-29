@@ -74,18 +74,18 @@ sub _build_graph {
 
         no warnings 'redefine';
 
-        local *add      = sub { $graph->_add(@_) };
-        local *route    = sub { $graph->_add(@_) };
-        local *node     = sub { $graph->_node(@_) };
-        local *edge     = sub { $graph->_edge(@_) };
-        local *nodes    = sub { $graph->_update_attrs('gnode_attrs', @_) };
-        local *edges    = sub { $graph->_update_attrs('gedge_attrs', @_) };
+        local *add      = sub { $graph->add(@_) };
+        local *route    = sub { $graph->add(@_) };
+        local *node     = sub { $graph->node(@_) };
+        local *edge     = sub { $graph->edge(@_) };
+        local *nodes    = sub { $graph->update_attrs('gnode_attrs', @_) };
+        local *edges    = sub { $graph->update_attrs('gedge_attrs', @_) };
         local *nodeset  = sub { @{$graph->{nodes}} };
         local *edgeset  = sub { @{$graph->{edges}} };
-        local *global   = sub { $graph->_update_attrs('graph_attrs', @_) };
-        local *rank     = sub { $graph->_rank(@_) };
-        local *name     = sub { $graph->_name(@_) };
-        local *type     = sub { $graph->_type(@_) };
+        local *global   = sub { $graph->update_attrs('graph_attrs', @_) };
+        local *rank     = sub { $graph->rank(@_) };
+        local *name     = sub { $graph->name(@_) };
+        local *type     = sub { $graph->type(@_) };
         local *subgraph = _build_subgraph($graph);
 
         $code->();

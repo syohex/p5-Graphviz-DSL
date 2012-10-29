@@ -32,7 +32,7 @@ sub new {
     }, $class;
 }
 
-sub _add {
+sub add {
     my ($self, @nodes_or_routes) = @_;
 
     if (scalar @nodes_or_routes == 1) {
@@ -52,7 +52,7 @@ sub _add {
 
         for my $edge ( _product($start, $end) ) {
             my $edge_id = join '_', @{$edge};
-            $self->_edge($edge_id);
+            $self->edge($edge_id);
         }
     }
 }
@@ -71,9 +71,9 @@ sub _add_one_node {
     my ($self, $node) = @_;
 
     if (!ref($node)) {
-        $self->_node($node);
+        $self->node($node);
     } elsif (ref $node eq 'ARRAY') {
-        $self->_node($_) for @{$node};
+        $self->node($_) for @{$node};
     } else {
         Carp::croak("First parameter should be Scalar or ArrayRef");
     }
@@ -93,7 +93,7 @@ sub _product {
     return @products;
 }
 
-sub _node {
+sub node {
     my ($self, $id, @args) = @_;
 
     my @attrs = _to_key_value_pair(@args);
@@ -137,13 +137,13 @@ sub _create_nodes {
     for my $edge (@{$self->{edges}}) {
         for my $id ($edge->start_node_id, $edge->end_node_id) {
             unless ($self->_find_node($id)) {
-                $self->_node($id);
+                $self->node($id);
             }
         }
     }
 }
 
-sub _edge {
+sub edge {
     my ($self, $id, @args) = @_;
 
     my @attrs = _to_key_value_pair(@args);
@@ -167,13 +167,25 @@ sub _edge {
     }
 }
 
-sub _name {
+sub edge_matcher {
+    my ($self, $start_matcher, $end_matcher) = @_;
+
+    if (scalar @_ > 3) {
+        Carp::carp("ignore after 3rd paramter");
+    }
+}
+
+sub node_matcher {
+    my ($self, @args) = @_;
+}
+
+sub name {
     my ($self, $name) = @_;
     $self->{name} = $name;
     return $self->{name};
 }
 
-sub _type {
+sub type {
     my ($self, $type) = @_;
     $self->{type} = $type;
     return $self->{type};
@@ -206,7 +218,7 @@ sub save {
     }
 }
 
-sub _rank {
+sub rank {
     my ($self, $type, @nodes) = @_;
 
     unless (@nodes) {
@@ -246,7 +258,7 @@ sub _build_attrs {
     }
 }
 
-sub _update_attrs {
+sub update_attrs {
     my ($self, $attr_key, @args) = @_;
 
  OUTER:
