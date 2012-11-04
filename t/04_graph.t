@@ -33,7 +33,8 @@ subtest 'add multiple nodes and edges' => sub {
     is scalar @{$graph->{nodes}}, 6, 'node number';
     is scalar @{$graph->{edges}}, 4, 'edge number';
 
-    my @expected = qw/foo_a foo_b bar_d hoge_d/;
+    my @expected = (['foo' => 'a'], ['foo' => 'b'],
+                    ['bar' => 'd'], ['hoge', 'd']);
     my @gots = map { $_->id } @{$graph->{edges}};
     is_deeply \@gots, \@expected, 'edges between nodes';
 };
@@ -43,7 +44,7 @@ subtest 'add multiple nodes and edges(odd args)' => sub {
     is scalar @{$graph->{nodes}}, 5, 'node number(odd args)';
     is scalar @{$graph->{edges}}, 2, 'edge number(odd args)';
 
-    my @expected = qw/foo_a foo_b/;
+    my @expected = (['foo' => 'a'], ['foo' => 'b']);
     my @gots = map { $_->id } @{$graph->{edges}};
     is_deeply \@gots, \@expected, 'edges between nodes';
 };
@@ -76,12 +77,12 @@ subtest 'update node' => sub {
 
 subtest 'add new edge' => sub {
     my @attrs = (a => 'bar', b => 'hoge');
-    my $graph = graph { edge 'foo_bar', @attrs };
+    my $graph = graph { edge [foo => 'bar'], @attrs };
     is scalar @{$graph->{nodes}}, 2, 'add new node';
     is scalar @{$graph->{edges}}, 1, 'add new edge';
 
     my $edge = $graph->{edges}->[0];
-    is $edge->id, 'foo_bar', 'edge id';
+    is_deeply $edge->id, ['foo' => 'bar'], 'edge id';
 
     my $expected = [[a => 'bar'], [b => 'hoge']];
     is_deeply $edge->attributes, $expected, 'edge attributes';
@@ -90,14 +91,14 @@ subtest 'add new edge' => sub {
 subtest 'update edge' => sub {
     my @attrs = (a => 'bar', b => 'hoge');
     my $graph = graph {
-        edge 'foo_bar', @attrs;
-        edge 'foo:x_bar:y', b => 'wao', c => 'moo';
+        edge ['foo' => 'bar'], @attrs;
+        edge ['foo:x' => 'bar:y'], b => 'wao', c => 'moo';
     };
     is scalar @{$graph->{nodes}}, 2, 'not change nodes';
     is scalar @{$graph->{edges}}, 1, 'not change edges';
 
     my $edge = $graph->{edges}->[0];
-    is $edge->id, 'foo_bar', 'not change edge id';
+    is_deeply $edge->id, ['foo' => 'bar'], 'not change edge id';
     is $edge->{start_port}, 'x', 'set start_port';
     is $edge->{end_port}, 'y', 'set end_port';
 

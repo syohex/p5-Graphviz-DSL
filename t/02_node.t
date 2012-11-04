@@ -44,11 +44,4 @@ subtest 'missing id parameter' => sub {
     like $@, qr/missing mandatory parameter 'id'/;
 };
 
-subtest 'invalid id parameter' => sub {
-    eval {
-        my $node = Graphviz::DSL::Node->new(id => 'foo_bar', attrs => []);
-    };
-    like $@, qr/must not include underscores/;
-};
-
 done_testing;
