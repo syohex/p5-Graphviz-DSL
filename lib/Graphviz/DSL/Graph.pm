@@ -51,8 +51,7 @@ sub add {
         } ($start, $end);
 
         for my $edge ( _product($start, $end) ) {
-            my $edge_id = join '_', @{$edge};
-            $self->edge($edge_id);
+            $self->edge($edge);
         }
     }
 }
@@ -61,7 +60,7 @@ sub _find_node {
     my ($self, $id) = @_;
 
     for my $node (@{$self->{nodes}}) {
-        return $node if $node->id eq $id;
+        return $node if $node->equal_to($id);
     }
 
     return;
@@ -98,15 +97,22 @@ sub node {
 
     my @attrs = _to_key_value_pair(@args);
 
-    if (my $node = $self->_find_node($id)) {
-        $node->update_attributes(\@attrs);
+    my @nodes;
+    if (ref $id eq 'Regexp') {
+        for my $node (@{$self->{nodes}}) {
+            $node->update_attributes(\@attrs) if $node->equal_to($id);
+        }
     } else {
-        my $node = Graphviz::DSL::Node->new(
-            id         => $id,
-            attributes => \@attrs,
-        );
-        push @{$self->{nodes}}, $node;
-        push @{$self->{objects}}, $node;
+        if (my $node = $self->_find_node($id)) {
+            $node->update_attributes(\@attrs);
+        } else {
+            my $node = Graphviz::DSL::Node->new(
+                id         => $id,
+                attributes => \@attrs,
+            );
+            push @{$self->{nodes}}, $node;
+            push @{$self->{objects}}, $node;
+        }
     }
 }
 
@@ -119,16 +125,6 @@ sub _to_key_value_pair {
     }
 
     return @pairs;
-}
-
-sub _find_edge {
-    my ($self, $id) = @_;
-
-    for my $edge (@{$self->{edges}}) {
-        return $edge if $edge->id eq $id;
-    }
-
-    return;
 }
 
 sub _create_nodes {
@@ -148,23 +144,72 @@ sub edge {
 
     my @attrs = _to_key_value_pair(@args);
 
-    unless ($id =~ m{._.}) {
-        Carp::croak("'id' should be joined with '_'");
+    unless (ref $id eq 'ARRAY') {
+        Carp::croak("First parameter of 'edge' should be ArrayRef");
     }
 
-    my $dummy = Graphviz::DSL::Edge->new(
-        id         => $id,
-        attributes => \@attrs,
-    );
+    my @start_ids = $self->_match_edge_id($id->[0]);
+    my @end_ids   = $self->_match_edge_id($id->[1]);
 
-    if (my $edge = $self->_find_edge($dummy->id)) {
-        $edge->update_attributes(\@attrs);
-        $edge->update_id_info($id) if $edge->id ne $id;
+    my @edge_ids;
+    for my $start_obj (@start_ids) {
+        for my $end_obj (@end_ids) {
+            push @edge_ids, [$start_obj, $end_obj];
+        }
+    }
+
+    my @edges;
+    for my $edge (@{$self->{edges}}) {
+        for my $edge_id (@edge_ids) {
+            push @edges, $edge if $edge->equal_to($edge_id);
+        }
+    }
+
+    if (@edges) {
+        for my $edge (@edges) {
+            $edge->update_attributes(\@attrs);
+            $edge->update_id_info($id) if $edge->equal_to($id);
+        }
     } else {
-        push @{$self->{edges}}, $dummy;
+        my $edge = Graphviz::DSL::Edge->new(
+            id         => $id,
+            attributes => \@attrs,
+        );
+
+        push @{$self->{edges}}, $edge;
         $self->_create_nodes;
-        push @{$self->{objects}}, $dummy;
+        push @{$self->{objects}}, $edge;
     }
+}
+
+sub _match_edge_id {
+    my ($self, $id) = @_;
+
+    my @ids;
+    if (ref $id eq 'Regexp') {
+        @ids = $self->_match_node($id->[0]);
+    } elsif ($id =~ m{^([^:]+):}) {
+        @ids = ($1);
+    } else {
+        @ids = ($id);
+    }
+
+    return @ids;
+}
+
+sub _match_node {
+    my ($self, $regexp) = shift;
+
+    my @matched_objs;
+    for my $obj (@{$self->{objects}}) {
+        if ($obj->id =~ m{$regexp}) {
+            push @matched_objs, $obj;
+        }
+    }
+
+    Carp::carp("No objects are matched\n") unless @matched_objs;
+
+    return @matched_objs;
 }
 
 sub edge_matcher {

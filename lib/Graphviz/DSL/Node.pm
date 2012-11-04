@@ -13,11 +13,7 @@ sub new {
         Carp::croak("missing mandatory parameter 'id'");
     }
 
-    my $id = delete $args{id};
-    if ($id =~ m{_}) {
-        Carp::croak("'id' paramter must not include underscores");
-    }
-
+    my $id    = delete $args{id};
     my $attrs = delete $args{attributes} || [];
     unless (ref $attrs eq 'ARRAY') {
         Carp::croak("'attributes' parameter should be ArrayRef");
@@ -51,6 +47,18 @@ sub update_attributes {
 
         push @{$self->{attributes}}, $attr;
     }
+}
+
+sub equal_to {
+    my ($self, $id) = @_;
+
+    if (ref $id eq 'Regexp') {
+        return 0 unless $self->{id} =~ m{$id};
+    } else {
+        return 0 unless $self->{id} eq $id;
+    }
+
+    return 1;
 }
 
 # accessor

@@ -13,6 +13,10 @@ sub new {
         Carp::croak("missing mandatory parameter 'id'");
     }
 
+    unless (ref $args{id} eq 'ARRAY') {
+        Carp::croak("'id' parameter should be ArrayRef");
+    }
+
     my $id    = delete $args{id};
     my $attrs = delete $args{attributes} || {};
 
@@ -44,29 +48,61 @@ sub update_id_info {
 sub _parse_id {
     my ($self, $id) = @_;
 
-    if ($id =~ m/[^\w:]/) {
-        Carp::croak("'id' parameter($id) must not include other than words or colon");
+    my ($start, $start_port, $start_compass);
+    my ($end, $end_port, $end_compass);
+    ($start, $end) = @{$id}[0, 1];
+
+    if ($start =~ m{:}) {
+        ($start, $start_port, $start_compass) = split /:/, $start, 3;
     }
 
-    unless ($id =~ m/_/) {
-        Carp::croak("'id' parameter($id) must contain underscore");
+    if ($end =~ m{:}) {
+        ($end, $end_port, $end_compass) = split /:/, $end, 3;
     }
 
-    my ($start, $start_port, $end, $end_port, $seq);
-    ($start, $end, $seq) = split /_/, $id, 3;
+    $self->{id}            = [$start, $end];
+    $self->{start}         = $start;
+    $self->{end}           = $end;
+    $self->{start_port}    = $start_port;
+    $self->{end_port}      = $end_port;
+    $self->{start_compass} = $start_compass;
+    $self->{end_compass}   = $end_compass;
+}
 
-    ($start, $start_port) = split /:/, $start if $start =~ m{:};
-    ($end, $end_port)     = split /:/, $end   if $end   =~ m{:};
+sub equal_to {
+    my ($self, $id) = @_;
+    my ($start, $end) = map { _extract_id($_) } @{$id};
 
-    my $id_ref = (defined $seq ? [$start, $end, $seq] : [$start, $end]);
-    $id = join '_', @{$id_ref};
+    return $self->_equal_id($start, $end);
+}
 
-    $self->{id}         = $id;
-    $self->{start}      = $start;
-    $self->{end}        = $end;
-    $self->{seq}        = $seq;
-    $self->{start_port} = $start_port;
-    $self->{end_port}   = $end_port;
+sub _extract_id {
+    my $id = shift;
+
+    if ($id =~ m{^([^:]+)}) {
+        $id = $1;
+    }
+
+    return $id
+}
+
+sub _equal_id {
+    my ($self, $start, $end) = @_;
+    my ($a, $target) = @_;
+
+     if (ref $start eq 'Regexp') {
+         return 0 unless $self->{start} =~ m{$start};
+     } else {
+         return 0 unless $self->{start} eq $start;
+     }
+
+    if (ref $end eq 'Regexp') {
+        return 0 unless $self->{end} =~ m{$end};
+    } else {
+        return 0 unless $self->{end} eq $end;
+    }
+
+    return 1;
 }
 
 # accessor
