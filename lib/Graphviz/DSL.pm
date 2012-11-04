@@ -161,7 +161,7 @@ Graphviz::DSL - Graphviz Perl interface with DSL
       }
 
       edges arrowhead => 'onormal', color => 'magenta4';
-      edge 'main_printf', arrowtail => 'diamond', color => '#3355FF';
+      edge ['main' => 'printf'], arrowtail => 'diamond', color => '#3355FF';
       global bgcolor => 'white';
 
       node 'execute', shape => 'Mrecord',
@@ -169,7 +169,7 @@ Graphviz::DSL - Graphviz Perl interface with DSL
       node 'printf',  shape => 'Mrecord',
                       label => '{printf |<y> format}';
 
-      edge 'execute:x_printf:y';
+      edge ['execute:x' => 'printf:y'];
       rank 'same', 'cleanup', 'execute';
 
       subgraph {
