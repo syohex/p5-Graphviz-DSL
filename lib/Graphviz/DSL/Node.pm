@@ -5,6 +5,8 @@ use warnings;
 use parent qw/Graphviz::DSL::Component/;
 
 use Carp ();
+use Scalar::Util qw/blessed/;
+use Graphviz::DSL::Util qw/parse_id/;
 
 sub new {
     my ($class, %args) = @_;
@@ -19,15 +21,30 @@ sub new {
         Carp::croak("'attributes' parameter should be ArrayRef");
     }
 
+    my $port    = delete $args{port}    || undef;
+    my $compass = delete $args{compass} || undef;
+
     bless {
         id         => $id,
         attributes => $attrs,
+        port       => $port,
+        compass    => $compass,
     }, $class;
 }
 
 sub as_string {
     my $self = shift;
-    sprintf "%s", $self->{id};
+
+    my $str = $self->{id};
+    if ($self->{port}) {
+        $str .= ":$self->{port}";
+    }
+
+    if ($self->{compass}) {
+        $str .= ":$self->{compass}";
+    }
+
+    return $str;
 }
 
 sub update_attributes {
@@ -50,19 +67,28 @@ sub update_attributes {
 }
 
 sub equal_to {
-    my ($self, $id) = @_;
+    my ($self, $node) = @_;
 
-    if (ref $id eq 'Regexp') {
-        return 0 unless $self->{id} =~ m{$id};
-    } else {
-        return 0 unless $self->{id} eq $id;
+    if (blessed $node && $node->isa('Graphviz::DSL::Node')) {
+        return $self->{id} eq $node->{id};
     }
 
-    return 1;
+    return 0;
+}
+
+sub update {
+    my ($self, $node_id) = @_;
+
+    my ($id, $port, $compass) = parse_id($node_id);
+
+    # id is same
+    $self->{port} = $port;
+    $self->{compass} = $compass;
 }
 
 # accessor
-sub id         { $_[0]->{id};    }
-sub attributes { $_[0]->{attributes}; }
+sub id         { $_[0]->{id};         }
+sub port       { $_[0]->{port};       }
+sub compass    { $_[0]->{compass};    }
 
 1;
