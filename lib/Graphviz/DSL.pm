@@ -201,7 +201,8 @@ Set C<$name> as graph name. Default is 'G'.
 
 =head3 C<< type $type >>
 
-Set C<$type> as graph type. Default is 'digraph'.
+Set C<$type> as graph type. C<$type> should be digraph(directed graph)
+or graph(undirected graph). Default is 'digraph'.
 
 =head3 C<< add, route >>
 
