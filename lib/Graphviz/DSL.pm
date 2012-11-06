@@ -102,7 +102,10 @@ sub _build_subgraph {
         my $code = shift;
         my $num  = scalar @{$parent->{subgraphs}};
 
-        my $self = Graphviz::DSL::Graph->new(name => "cluster${num}", type => 'subgraph');
+        my $self = Graphviz::DSL::Graph->new(
+            id   => "cluster${num}",
+            type => 'subgraph'
+        );
         my $graph = _build_graph($self);
 
         my $subgraph = $graph->($code);
