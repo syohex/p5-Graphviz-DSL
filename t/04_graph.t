@@ -9,7 +9,7 @@ subtest 'Graph constructor' => sub {
     ok $graph, 'constructor';
     isa_ok $graph, 'Graphviz::DSL::Graph';
 
-    is $graph->{name}, 'G', 'default graph name';
+    is $graph->{id}, 'G', 'default graph name';
     is $graph->{type}, 'digraph', 'default graph type';
 };
 
