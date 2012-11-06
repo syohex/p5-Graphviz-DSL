@@ -192,7 +192,7 @@ subtest 'subgraph' => sub {
     isa_ok $subgraph, "Graphviz::DSL::Graph", 'subgraph is-a Graphviz::DSL::Graph';
 };
 
-subtest 'as_string' => sub {
+subtest 'as_string(direct)' => sub {
     my $graph = graph {
         route main => [qw/init parse/];
         route init => 'make', parse => 'execute';
@@ -213,6 +213,34 @@ digraph G {
   execute -> make;
   compare;
   execute -> compare;
+}
+...
+
+    is $graph->as_string, $expected, 'as_string';
+};
+
+subtest 'as_string(undirect)' => sub {
+    my $graph = graph {
+        type 'graph';
+        route main => [qw/init parse/];
+        route init => 'make', parse => 'execute';
+        route execute => [qw/make compare/];
+    };
+
+    my $expected = <<'...';
+graph G {
+  main;
+  init;
+  main -- init;
+  parse;
+  main -- parse;
+  make;
+  init -- make;
+  execute;
+  parse -- execute;
+  execute -- make;
+  compare;
+  execute -- compare;
 }
 ...
 
