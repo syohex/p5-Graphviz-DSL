@@ -7,6 +7,8 @@ use parent qw/Graphviz::DSL::Component/;
 use Carp ();
 use Scalar::Util qw/blessed/;
 
+use Graphviz::DSL::Util qw/parse_id/;
+
 use overload (
     '""'     => sub { $_[0]->as_string },
     fallback => 1,
@@ -15,11 +17,11 @@ use overload (
 sub new {
     my ($class, %args) = @_;
 
-    my $name = delete $args{name} || 'G';
+    my $id   = delete $args{id}   || 'G';
     my $type = delete $args{type} || 'digraph';
 
     bless {
-        name        => $name,
+        id          => $id,
         type        => $type,
         edges       => [],
         nodes       => [],
@@ -60,7 +62,7 @@ sub _find_node {
     my ($self, $id) = @_;
 
     for my $node (@{$self->{nodes}}) {
-        return $node if $node->equal_to($id);
+        return $node if $node->id eq $id;
     }
 
     return;
@@ -93,25 +95,30 @@ sub _product {
 }
 
 sub node {
-    my ($self, $id, @args) = @_;
+    my ($self, $node_id, @args) = @_;
 
     my @attrs = _to_key_value_pair(@args);
 
     my @nodes;
-    if (ref $id eq 'Regexp') {
+    if (ref $node_id eq 'Regexp') {
         for my $node (@{$self->{nodes}}) {
-            $node->update_attributes(\@attrs) if $node->equal_to($id);
+            $node->update_attributes(\@attrs) if $node->id eq $node_id;
         }
     } else {
-        if (my $node = $self->_find_node($id)) {
+        if (my $node = $self->_find_node($node_id)) {
             $node->update_attributes(\@attrs);
         } else {
+            my ($id, $port, $compass) = parse_id($node_id);
             my $node = Graphviz::DSL::Node->new(
                 id         => $id,
+                port       => $port,
+                compass    => $compass,
                 attributes => \@attrs,
             );
             push @{$self->{nodes}}, $node;
             push @{$self->{objects}}, $node;
+
+            return $node;
         }
     }
 }
@@ -127,16 +134,36 @@ sub _to_key_value_pair {
     return @pairs;
 }
 
-sub _create_nodes {
-    my $self = shift;
+sub _create_node {
+    my ($self, $id) = @_;
 
-    for my $edge (@{$self->{edges}}) {
-        for my $id ($edge->start_node_id, $edge->end_node_id) {
-            unless ($self->_find_node($id)) {
-                $self->node($id);
-            }
+    my $node = $self->node($id);
+    return $node;
+}
+
+sub _equal_only_id {
+    my ($self, $node_id) = @_;
+
+    my ($id) = parse_id($node_id);
+    for my $obj (@{$self->{nodes}}) {
+        if ($id eq $obj->id && $node_id ne $obj->id) {
+            return $obj;
         }
     }
+
+    return;
+}
+
+sub _find_obj {
+    my ($self, $id) = @_;
+
+    for my $obj (@{$self->{nodes}}, @{$self->{subgraphs}}) {
+        if ($obj->id eq $id) {
+            return $obj;
+        }
+    }
+
+    return;
 }
 
 sub edge {
@@ -148,68 +175,104 @@ sub edge {
         Carp::croak("First parameter of 'edge' should be ArrayRef");
     }
 
-    my @start_ids = $self->_match_edge_id($id->[0]);
-    my @end_ids   = $self->_match_edge_id($id->[1]);
+    my @start_objs = $self->_match_objs($id->[0]);
+    my @end_objs   = $self->_match_objs($id->[1]);
 
-    my @edge_ids;
-    for my $start_obj (@start_ids) {
-        for my $end_obj (@end_ids) {
-            push @edge_ids, [$start_obj, $end_obj];
+    my @edge_objs;
+    for my $start_obj (@start_objs) {
+        for my $end_obj (@end_objs) {
+            push @edge_objs, [$start_obj, $end_obj];
         }
     }
 
     my @edges;
     for my $edge (@{$self->{edges}}) {
-        for my $edge_id (@edge_ids) {
-            push @edges, $edge if $edge->equal_to($edge_id);
+        for my $edge_obj (@edge_objs) {
+            my $e = Graphviz::DSL::Edge->new(
+                start => $edge_obj->[0],
+                end   => $edge_obj->[1],
+            );
+            push @edges, $edge if $edge->equal_to($e);
         }
     }
 
+    ## XXX
     if (@edges) {
         for my $edge (@edges) {
             $edge->update_attributes(\@attrs);
-            $edge->update_id_info($id) if $edge->equal_to($id);
+
+            unless (grep { ref $_ eq 'Regexp'} @{$id}) {
+                my $start = $self->_equal_only_id($id->[0]);
+                my $end   = $self->_equal_only_id($id->[1]);
+
+                $start->update($id->[0]) if $start;
+                $end->update($id->[1])   if $end;
+            }
         }
     } else {
+        my ($start, $end) = map {
+            $self->_find_obj($_) || $self->_create_node($_)
+        } @{$id};
+
         my $edge = Graphviz::DSL::Edge->new(
-            id         => $id,
+            start      => $start,
+            end        => $end,
             attributes => \@attrs,
         );
 
         push @{$self->{edges}}, $edge;
-        $self->_create_nodes;
         push @{$self->{objects}}, $edge;
     }
 }
 
-sub _match_edge_id {
-    my ($self, $id) = @_;
+sub _does_update {
+    my ($self, $obj, $node_id) = @_;
 
-    my @ids;
-    if (ref $id eq 'Regexp') {
-        @ids = $self->_match_node($id->[0]);
-    } elsif ($id =~ m{^([^:]+):}) {
-        @ids = ($1);
-    } else {
-        @ids = ($id);
+    if (blessed $obj && blessed $obj eq 'Graphviz::DSL::Node'
+            && ref $node_id ne 'Regexp' && $obj->id ne $node_id) {
+        return 1;
     }
-
-    return @ids;
+    return 0;
 }
 
-sub _match_node {
-    my ($self, $regexp) = shift;
+sub _match_objs {
+    my ($self, $pattern) = @_;
 
-    my @matched_objs;
-    for my $obj (@{$self->{objects}}) {
-        if ($obj->id =~ m{$regexp}) {
-            push @matched_objs, $obj;
+    my @objects;
+    my $matcher_code;
+    my $use_regexp = 0;
+
+    if (ref $pattern eq 'Regexp') {
+        $matcher_code = \&_match_regexp;
+        $use_regexp = 1;
+    } else {
+        if ($pattern =~ m{^([^:]+):}) {
+            $pattern = $1;
+        }
+        $matcher_code = \&_match_string;
+    }
+
+    for my $obj (@{$self->{nodes}}, @{$self->{subgraphs}}) {
+        if ($matcher_code->($obj->id, $pattern)) {
+            push @objects, $obj;
         }
     }
 
-    Carp::carp("No objects are matched\n") unless @matched_objs;
+    if ($use_regexp && scalar @objects == 0) {
+        Carp::carp("No objects are matched\n");
+    }
 
-    return @matched_objs;
+    return @objects;
+}
+
+sub _match_regexp {
+    my ($target_id, $regexp) = @_;
+    return $target_id =~ m{$regexp};
+}
+
+sub _match_string {
+    my ($target_id, $id) = @_;
+    return $target_id eq $id;
 }
 
 sub edge_matcher {
@@ -220,18 +283,19 @@ sub edge_matcher {
     }
 }
 
-sub node_matcher {
-    my ($self, @args) = @_;
-}
-
 sub name {
     my ($self, $name) = @_;
-    $self->{name} = $name;
-    return $self->{name};
+    $self->{id} = $name;
+    return $self->{id};
 }
 
 sub type {
     my ($self, $type) = @_;
+
+    unless ($type eq 'digraph' || $type eq 'graph') {
+        Carp::croak("'type' should be 'digraph' or 'graph'");
+    }
+
     $self->{type} = $type;
     return $self->{type};
 }
@@ -334,8 +398,8 @@ my %print_func = (
         return @results;
     },
     'Graphviz::DSL::Edge' => sub {
-        my $edge = shift;
-        sprintf "  %s%s;", $edge->as_string, _build_attrs($edge->attributes);
+        my ($edge, $is_directed) = @_;
+        sprintf "  %s%s;", $edge->as_string($is_directed), _build_attrs($edge->attributes);
     },
     'Graphviz::DSL::Node' => sub {
         my $node = shift;
@@ -347,9 +411,10 @@ sub as_string {
     my $self = shift;
 
     my @result;
+    my $is_directed = $self->{type} eq 'digraph' ? 1 : 0;
     my $indent = '  ';
 
-    push @result, sprintf "%s %s {", $self->{type}, $self->{name};
+    push @result, sprintf "%s %s {", $self->{type}, $self->{id};
 
     if (@{$self->{graph_attrs}}) {
         my $graph_attrs_str = join ";\n$indent", @{_build_attrs($self->{graph_attrs}, 0)};
@@ -369,7 +434,7 @@ sub as_string {
     for my $object (@{$self->{objects}}) {
         my $class = blessed $object;
         Carp::croak("Invalid object") unless defined $class;
-        push @result, $print_func{$class}->($object);
+        push @result, $print_func{$class}->($object, $is_directed);
     }
 
     for my $rank ( @{$self->{ranks}} ) {
@@ -382,5 +447,18 @@ sub as_string {
     push @result, "}\n";
     return join "\n", @result;
 }
+
+sub equal_to {
+    my ($self, $obj) = @_;
+
+    if (blessed $obj && $obj->isa('Graphviz::DSL::Graph')) {
+        return 0;
+    }
+
+    return $self->{id} eq $obj->{id};
+}
+
+# accessor
+sub id { $_[0]->{id}; }
 
 1;
