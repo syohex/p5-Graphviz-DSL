@@ -252,7 +252,7 @@ subtest 'set name' => sub {
         name 'test_graph';
     };
 
-    is $graph->{name}, 'test_graph', 'Set graph name';
+    is $graph->{id}, 'test_graph', 'Set graph name';
 };
 
 subtest 'set type' => sub {
