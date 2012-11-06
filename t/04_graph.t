@@ -35,7 +35,7 @@ subtest 'add multiple nodes and edges' => sub {
 
     my @expected = (['foo' => 'a'], ['foo' => 'b'],
                     ['bar' => 'd'], ['hoge', 'd']);
-    my @gots = map { $_->id } @{$graph->{edges}};
+    my @gots = map { [$_->start->id, $_->end->id] } @{$graph->{edges}};
     is_deeply \@gots, \@expected, 'edges between nodes';
 };
 
@@ -45,7 +45,7 @@ subtest 'add multiple nodes and edges(odd args)' => sub {
     is scalar @{$graph->{edges}}, 2, 'edge number(odd args)';
 
     my @expected = (['foo' => 'a'], ['foo' => 'b']);
-    my @gots = map { $_->id } @{$graph->{edges}};
+    my @gots = map { [$_->start->id, $_->end->id] } @{$graph->{edges}};
     is_deeply \@gots, \@expected, 'edges between nodes';
 };
 
@@ -78,11 +78,13 @@ subtest 'update node' => sub {
 subtest 'add new edge' => sub {
     my @attrs = (a => 'bar', b => 'hoge');
     my $graph = graph { edge [foo => 'bar'], @attrs };
+
     is scalar @{$graph->{nodes}}, 2, 'add new node';
     is scalar @{$graph->{edges}}, 1, 'add new edge';
 
     my $edge = $graph->{edges}->[0];
-    is_deeply $edge->id, ['foo' => 'bar'], 'edge id';
+    my $start_end_id = [$edge->start->id, $edge->end->id];
+    is_deeply $start_end_id, ['foo' => 'bar'], 'edge id';
 
     my $expected = [[a => 'bar'], [b => 'hoge']];
     is_deeply $edge->attributes, $expected, 'edge attributes';
@@ -94,13 +96,16 @@ subtest 'update edge' => sub {
         edge ['foo' => 'bar'], @attrs;
         edge ['foo:x' => 'bar:y'], b => 'wao', c => 'moo';
     };
+
     is scalar @{$graph->{nodes}}, 2, 'not change nodes';
     is scalar @{$graph->{edges}}, 1, 'not change edges';
 
     my $edge = $graph->{edges}->[0];
-    is_deeply $edge->id, ['foo' => 'bar'], 'not change edge id';
-    is $edge->{start_port}, 'x', 'set start_port';
-    is $edge->{end_port}, 'y', 'set end_port';
+    my $start_end_id = [$edge->start->id, $edge->end->id];
+    is_deeply $start_end_id, ['foo' => 'bar'], 'not change edge id';
+
+    is $edge->start->port, 'x', 'set start_port';
+    is $edge->end->port, 'y', 'set end_port';
 
     my $expected = [[a => 'bar'], [b => 'wao'], [c => 'moo']];
     is_deeply $edge->attributes, $expected, 'update edge attributes';
