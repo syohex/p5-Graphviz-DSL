@@ -261,6 +261,13 @@ subtest 'set type' => sub {
     };
 
     is $graph->{type}, 'graph', 'Set graph type';
+
+    eval {
+        my $graph2 = graph {
+            type 'hoge';
+        };
+    };
+    like $@, qr/should be 'digraph' or 'graph'/, 'set invalid graph type';
 };
 
 done_testing;
