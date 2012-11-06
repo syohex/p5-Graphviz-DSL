@@ -74,8 +74,10 @@ sub _build_graph {
 
         no warnings 'redefine';
 
-        local *add      = sub { $graph->add(@_) };
-        local *route    = sub { $graph->add(@_) };
+        my $add_code = sub { $graph->add(@_) };
+
+        local *add      = \&$add_code;
+        local *route    = \&$add_code;
         local *node     = sub { $graph->node(@_) };
         local *edge     = sub { $graph->edge(@_) };
         local *nodes    = sub { $graph->update_attrs('gnode_attrs', @_) };
