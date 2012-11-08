@@ -37,7 +37,15 @@ sub as_string {
     my ($self, $id_directed) = @_;
 
     my $edgeop = $id_directed ? '->' : '--';
-    sprintf "%s %s %s", $self->{start}->as_string, $edgeop, $self->{end}->as_string;
+    my ($start, $end) = ($self->{start}, $self->{end});
+
+    for my $obj ($start, $end) {
+        if (blessed $obj && blessed $obj eq 'Graphviz::DSL::Graph') {
+            $start->{delayd} = 0;
+        }
+    }
+
+    sprintf "%s %s %s", $start->as_string, $edgeop, $end->as_string;
 }
 
 sub update_edge {

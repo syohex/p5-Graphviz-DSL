@@ -105,8 +105,9 @@ sub _build_subgraph {
         my $num  = scalar @{$parent->{subgraphs}};
 
         my $self = Graphviz::DSL::Graph->new(
-            id   => "cluster${num}",
-            type => 'subgraph'
+            id       => "cluster${num}",
+            type     => $parent->{type},
+            subgraph => 1,
         );
         my $graph = _build_graph($self);
 

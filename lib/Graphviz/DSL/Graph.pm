@@ -19,6 +19,7 @@ sub new {
 
     my $id   = delete $args{id}   || 'G';
     my $type = delete $args{type} || 'digraph';
+    my $is_subgraph = delete $args{subgraph} || 0;
 
     bless {
         id          => $id,
@@ -31,6 +32,8 @@ sub new {
         subgraphs   => [],
         ranks       => [],
         objects     => [],
+        is_subgraph => $is_subgraph,
+        delayed     => 0,
     }, $class;
 }
 
@@ -285,6 +288,7 @@ sub _match_objs {
     for my $obj (@{$self->{nodes}}, @{$self->{subgraphs}}) {
         if ($matcher_code->($obj->id, $pattern)) {
             push @objects, $obj;
+            $obj->{delayed} = 1 if $obj->{is_subgraph};
         }
     }
 
@@ -418,6 +422,8 @@ sub update_attrs {
 my %print_func = (
     'Graphviz::DSL::Graph' => sub {
         my $graph = shift;
+        return if $graph->{delayed};
+
         my @lines = split /\n/, $graph->as_string;
 
         my @results;
@@ -444,7 +450,8 @@ sub as_string {
     my $is_directed = $self->{type} eq 'digraph' ? 1 : 0;
     my $indent = '  ';
 
-    push @result, sprintf "%s %s {", $self->{type}, $self->{id};
+    my $graph_type = $self->{is_subgraph} ? 'subgraph' : $self->{type};
+    push @result, sprintf "%s %s {", $graph_type, $self->{id};
 
     if (@{$self->{graph_attrs}}) {
         my $graph_attrs_str = join ";\n$indent", @{_build_attrs($self->{graph_attrs}, 0)};
