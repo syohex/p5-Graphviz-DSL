@@ -185,20 +185,19 @@ sub edge {
         }
     }
 
-    my @edges;
+    my @update_edges;
     for my $edge (@{$self->{edges}}) {
         for my $edge_obj (@edge_objs) {
-            my $e = Graphviz::DSL::Edge->new(
+            my $test_edge = Graphviz::DSL::Edge->new(
                 start => $edge_obj->[0],
                 end   => $edge_obj->[1],
             );
-            push @edges, $edge if $edge->equal_to($e);
+            push @update_edges, $edge if $edge->equal_to($test_edge);
         }
     }
 
-    ## XXX
-    if (@edges) {
-        for my $edge (@edges) {
+    if (@update_edges) {
+        for my $edge (@update_edges) {
             $edge->update_attributes(\@attrs);
 
             unless (grep { ref $_ eq 'Regexp'} @{$id}) {
