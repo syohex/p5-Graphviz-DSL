@@ -81,6 +81,37 @@ sub _add_one_node {
     return;
 }
 
+sub multi_route {
+    my ($self, $node) = @_;
+
+    unless (ref $node eq 'ARRAY') {
+        Carp::croak("multi_route should take 'ArrayRef'");
+    }
+
+    my $start = shift @{$node};
+    my $end   = shift @{$node};
+
+    my @routes;
+    while (1) {
+        ($start, $end) = map {
+            ref $_ eq 'ARRAY' ? $_ : [$_]
+        } ($start, $end);
+
+        for my $s (@{$start}) {
+            for my $e (@{$end}) {
+                push @routes, [$s, $e];
+            }
+        }
+
+        last unless (@{$node});
+
+        $start = $end;
+        $end   = shift @{$node};
+    }
+
+    $self->add(@{$_}[0, 1]) for @routes;
+}
+
 sub _product {
     my ($array_ref1, $array_ref2) = @_;
 

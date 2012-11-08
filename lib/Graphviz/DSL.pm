@@ -34,6 +34,7 @@ sub import {
     *{"$pkg\::name"}     = sub { goto &name     };
     *{"$pkg\::type"}     = sub { goto &type     };
     *{"$pkg\::subgraph"} = (sub { sub (&) { goto &subgraph } })->();
+    *{"$pkg\::multi_route"} = sub { goto &multi_route };
 }
 
 sub _new {
@@ -89,6 +90,7 @@ sub _build_graph {
         local *name     = sub { $graph->name(@_) };
         local *type     = sub { $graph->type(@_) };
         local *subgraph = _build_subgraph($graph);
+        local *multi_route = sub { $graph->multi_route(@_) };
 
         $code->();
         $graph;
@@ -134,6 +136,7 @@ sub __stub {
 *subgraph = __stub 'subgraph';
 *name     = __stub 'name';
 *type     = __stub 'type';
+*multi_route = __stub 'multi_route';
 
 1;
 
@@ -182,6 +185,11 @@ Graphviz::DSL - Graphviz Perl interface with DSL
           node 'init';
           node 'make';
       };
+
+      subgraph {
+          global label => 'SUB2';
+          multi_route [ 'a' => [qw/b c d/] => [qw/e f/] => 'g' ];
+      };
   };
 
   $graph->save(path => 'output', type => 'png', encoding => 'utf-8');
@@ -228,6 +236,10 @@ For example:
 Add node I<a> and I<b> and add edge a->c, a->d, b->c, b->d.
 
 =back
+
+=head3 C<< multi_route(\@routes]) >>
+
+Add multiple routes
 
 =head3 C<< node($node_id, [%attributes]) >>
 
