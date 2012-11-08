@@ -102,7 +102,7 @@ sub node {
     my @nodes;
     if (ref $node_id eq 'Regexp') {
         for my $node (@{$self->{nodes}}) {
-            $node->update_attributes(\@attrs) if $node->id eq $node_id;
+            $node->update_attributes(\@attrs) if $node->id =~ m{$node_id};
         }
     } else {
         if (my $node = $self->_find_node($node_id)) {
