@@ -42,11 +42,13 @@ subtest 'multi route(all scalar)' => sub {
 
 subtest 'multi route(all ArrayRef)' => sub {
     my $graph = graph {
-        multi_route [['a'] => ['b'] => ["c"] => ['d']];
+        multi_route [['a', 'b'] => ['c'] => ["e", 'f', 'g'] => ['h']];
     };
 
     my @expected = (
-        [a => 'b'], [b => 'c'], [c => 'd'],
+        [a => 'c'], [b => 'c'],
+        [c => 'e'], [c => 'f'], [c => 'g'],
+        [e => 'h'], [f => 'h'], [g => 'h'],
     );
 
     my @gots;
