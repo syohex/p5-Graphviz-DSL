@@ -44,7 +44,7 @@ sub as_string {
         $str .= ":$self->{compass}";
     }
 
-    return $str;
+    return qq{"$str"};
 }
 
 sub update_attributes {

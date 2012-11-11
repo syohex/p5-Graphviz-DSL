@@ -452,7 +452,7 @@ sub as_string {
     my $indent = '  ';
 
     my $graph_type = $self->{is_subgraph} ? 'subgraph' : $self->{type};
-    push @result, sprintf "%s %s {", $graph_type, $self->{id};
+    push @result, sprintf "%s \"%s\" {", $graph_type, $self->{id};
 
     if (@{$self->{graph_attrs}}) {
         my $graph_attrs_str = join ";\n$indent", @{_build_attrs($self->{graph_attrs}, 0)};

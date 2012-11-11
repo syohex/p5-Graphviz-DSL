@@ -205,19 +205,19 @@ subtest 'as_string(direct)' => sub {
     };
 
     my $expected = <<'...';
-digraph G {
-  main;
-  init;
-  main -> init;
-  parse;
-  main -> parse;
-  make;
-  init -> make;
-  execute;
-  parse -> execute;
-  execute -> make;
-  compare;
-  execute -> compare;
+digraph "G" {
+  "main";
+  "init";
+  "main" -> "init";
+  "parse";
+  "main" -> "parse";
+  "make";
+  "init" -> "make";
+  "execute";
+  "parse" -> "execute";
+  "execute" -> "make";
+  "compare";
+  "execute" -> "compare";
 }
 ...
 
@@ -233,19 +233,19 @@ subtest 'as_string(undirect)' => sub {
     };
 
     my $expected = <<'...';
-graph G {
-  main;
-  init;
-  main -- init;
-  parse;
-  main -- parse;
-  make;
-  init -- make;
-  execute;
-  parse -- execute;
-  execute -- make;
-  compare;
-  execute -- compare;
+graph "G" {
+  "main";
+  "init";
+  "main" -- "init";
+  "parse";
+  "main" -- "parse";
+  "make";
+  "init" -- "make";
+  "execute";
+  "parse" -- "execute";
+  "execute" -- "make";
+  "compare";
+  "execute" -- "compare";
 }
 ...
 

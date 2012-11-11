@@ -34,7 +34,7 @@ subtest 'update attributes' => sub {
 
 subtest 'as_string' => sub {
     my $node = Graphviz::DSL::Node->new(id => 'foo');
-    is $node->as_string, 'foo', "output of as_string";
+    is $node->as_string, '"foo"', "output of as_string";
 };
 
 subtest 'missing id parameter' => sub {

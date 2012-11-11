@@ -36,14 +36,14 @@ subtest 'output to string' => sub {
         end   => Graphviz::DSL::Node->new(id => 'bar', port => 'b'),
     );
     my $str = $edge->as_string(1);
-    is $str, 'foo:a -> bar:b', 'as String with port';
+    is $str, '"foo:a" -> "bar:b"', 'as String with port';
 
     my $edge_noport = Graphviz::DSL::Edge->new(
         start => Graphviz::DSL::Node->new(id => 'foo'),
         end   => Graphviz::DSL::Node->new(id => 'bar'),
     );
-    is $edge_noport->as_string(1), 'foo -> bar', 'as String without port';
-    is $edge_noport->as_string(0), 'foo -- bar', 'as String without port(undirect)';
+    is $edge_noport->as_string(1), '"foo" -> "bar"', 'as String without port';
+    is $edge_noport->as_string(0), '"foo" -- "bar"', 'as String without port(undirect)';
 };
 
 subtest 'update attributes' => sub {
