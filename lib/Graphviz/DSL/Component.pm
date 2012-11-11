@@ -26,7 +26,6 @@ sub as_string {
 }
 
 # accessor
-sub id         { $_[0]->{id};    }
 sub attributes { $_[0]->{attributes}; }
 
 1;

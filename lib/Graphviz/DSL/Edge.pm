@@ -5,72 +5,65 @@ use warnings;
 use parent qw/Graphviz::DSL::Component/;
 
 use Carp ();
+use Scalar::Util qw/blessed/;
+use Graphviz::DSL::Util qw/parse_id/;
 
 sub new {
     my ($class, %args) = @_;
 
-    unless (exists $args{id}) {
-        Carp::croak("missing mandatory parameter 'id'");
+    for my $key (qw/start end/) {
+        unless (exists $args{$key}) {
+            Carp::croak("missing mandatory parameter '$key'");
+        }
+
+        my $param = $args{$key};
+        unless (blessed $param && $param->isa('Graphviz::DSL::Component')) {
+            Carp::croak("'$key' parameter should isa 'Graphviz::DSL::Component'");
+        }
     }
 
-    my $id    = delete $args{id};
     my $attrs = delete $args{attributes} || {};
 
-    my $self = bless { attributes => $attrs }, $class;
-    $self->_parse_id($id);
+    my $self = bless {
+        start      => $args{start},
+        end        => $args{end},
+        attributes => $attrs,
+    }, $class;
 
     return $self;
 }
 
 sub as_string {
-    my $self = shift;
+    my ($self, $id_directed) = @_;
 
-    my $stp = $self->{start_port} ? ":$self->{start_port}" : "";
-    my $edp = $self->{end_port} ? ":$self->{end_port}" : "";
+    my $edgeop = $id_directed ? '->' : '--';
+    my ($start, $end) = ($self->{start}, $self->{end});
 
-    sprintf "%s%s -> %s%s", $self->{start}, $stp, $self->{end}, $edp;
-}
-
-sub nodes {
-    my $self = shift;
-    return [$self->{start}, $self->{end}];
-}
-
-sub update_id_info {
-    my ($self, $new_id) = @_;
-    $self->_parse_id($new_id);
-}
-
-sub _parse_id {
-    my ($self, $id) = @_;
-
-    if ($id =~ m/[^\w:]/) {
-        Carp::croak("'id' parameter($id) must not include other than words or colon");
+    for my $obj ($start, $end) {
+        if (blessed $obj && blessed $obj eq 'Graphviz::DSL::Graph') {
+            $start->{delayd} = 0;
+        }
     }
 
-    unless ($id =~ m/_/) {
-        Carp::croak("'id' parameter($id) must contain underscore");
-    }
+    sprintf "%s %s %s", $start->as_string, $edgeop, $end->as_string;
+}
 
-    my ($start, $start_port, $end, $end_port, $seq);
-    ($start, $end, $seq) = split /_/, $id, 3;
+sub update_edge {
+    my ($self, $start, $end) = @_;
 
-    ($start, $start_port) = split /:/, $start if $start =~ m{:};
-    ($end, $end_port)     = split /:/, $end   if $end   =~ m{:};
+    $self->{start} = $start;
+    $self->{end}   = $end;
+}
 
-    my $id_ref = (defined $seq ? [$start, $end, $seq] : [$start, $end]);
-    $id = join '_', @{$id_ref};
+sub equal_to {
+    my ($self, $edge) = @_;
+    my ($start, $end) = ($self->{start}, $self->{end});
 
-    $self->{id}         = $id;
-    $self->{start}      = $start;
-    $self->{end}        = $end;
-    $self->{seq}        = $seq;
-    $self->{start_port} = $start_port;
-    $self->{end_port}   = $end_port;
+    return $start->equal_to($edge->start) && $end->equal_to($edge->end);
 }
 
 # accessor
-sub start_node_id { $_[0]->{start} }
-sub end_node_id   { $_[0]->{end}   }
+sub start { $_[0]->{start} }
+sub end   { $_[0]->{end}   }
 
 1;

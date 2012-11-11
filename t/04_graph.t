@@ -4,12 +4,12 @@ use Test::More;
 
 use Graphviz::DSL;
 
-subtest 'internal constructor' => sub {
-    my $graph = Graphviz::DSL->_new();
+subtest 'Graph constructor' => sub {
+    my $graph = Graphviz::DSL::Graph->new();
     ok $graph, 'constructor';
-    isa_ok $graph, 'Graphviz::DSL';
+    isa_ok $graph, 'Graphviz::DSL::Graph';
 
-    is $graph->{name}, 'G', 'default graph name';
+    is $graph->{id}, 'G', 'default graph name';
     is $graph->{type}, 'digraph', 'default graph type';
 };
 
@@ -33,8 +33,9 @@ subtest 'add multiple nodes and edges' => sub {
     is scalar @{$graph->{nodes}}, 6, 'node number';
     is scalar @{$graph->{edges}}, 4, 'edge number';
 
-    my @expected = qw/foo_a foo_b bar_d hoge_d/;
-    my @gots = map { $_->id } @{$graph->{edges}};
+    my @expected = (['foo' => 'a'], ['foo' => 'b'],
+                    ['bar' => 'd'], ['hoge', 'd']);
+    my @gots = map { [$_->start->id, $_->end->id] } @{$graph->{edges}};
     is_deeply \@gots, \@expected, 'edges between nodes';
 };
 
@@ -43,9 +44,37 @@ subtest 'add multiple nodes and edges(odd args)' => sub {
     is scalar @{$graph->{nodes}}, 5, 'node number(odd args)';
     is scalar @{$graph->{edges}}, 2, 'edge number(odd args)';
 
-    my @expected = qw/foo_a foo_b/;
-    my @gots = map { $_->id } @{$graph->{edges}};
+    my @expected = (['foo' => 'a'], ['foo' => 'b']);
+    my @gots = map { [$_->start->id, $_->end->id] } @{$graph->{edges}};
     is_deeply \@gots, \@expected, 'edges between nodes';
+};
+
+subtest 'node with compass without port' => sub {
+    my $graph = graph { route 'foo:n' => 'bar:w' };
+
+    my $got = $graph->{edges}->[0];
+    my ($start, $end) = ($got->start, $got->end);
+
+    is $start->id, 'foo', 'start id';
+    is $start->compass, 'n', 'start compass';
+
+    is $end->id, 'bar', 'end id';
+    is $end->compass, 'w', 'end compass';
+};
+
+subtest 'node with port and compass' => sub {
+    my $graph = graph { route 'foo:aa:n' => 'bar:bb:e' };
+
+    my $got = $graph->{edges}->[0];
+    my ($start, $end) = ($got->start, $got->end);
+
+    is $start->id, 'foo', 'start id';
+    is $start->port, 'aa', 'start port';
+    is $start->compass, 'n', 'start compass';
+
+    is $end->id, 'bar', 'end id';
+    is $end->port, 'bb', 'end port';
+    is $end->compass, 'e', 'end compass';
 };
 
 subtest 'add new node' => sub {
@@ -76,12 +105,14 @@ subtest 'update node' => sub {
 
 subtest 'add new edge' => sub {
     my @attrs = (a => 'bar', b => 'hoge');
-    my $graph = graph { edge 'foo_bar', @attrs };
+    my $graph = graph { edge [foo => 'bar'], @attrs };
+
     is scalar @{$graph->{nodes}}, 2, 'add new node';
     is scalar @{$graph->{edges}}, 1, 'add new edge';
 
     my $edge = $graph->{edges}->[0];
-    is $edge->id, 'foo_bar', 'edge id';
+    my $start_end_id = [$edge->start->id, $edge->end->id];
+    is_deeply $start_end_id, ['foo' => 'bar'], 'edge id';
 
     my $expected = [[a => 'bar'], [b => 'hoge']];
     is_deeply $edge->attributes, $expected, 'edge attributes';
@@ -90,16 +121,19 @@ subtest 'add new edge' => sub {
 subtest 'update edge' => sub {
     my @attrs = (a => 'bar', b => 'hoge');
     my $graph = graph {
-        edge 'foo_bar', @attrs;
-        edge 'foo:x_bar:y', b => 'wao', c => 'moo';
+        edge ['foo' => 'bar'], @attrs;
+        edge ['foo:x' => 'bar:y'], b => 'wao', c => 'moo';
     };
+
     is scalar @{$graph->{nodes}}, 2, 'not change nodes';
     is scalar @{$graph->{edges}}, 1, 'not change edges';
 
     my $edge = $graph->{edges}->[0];
-    is $edge->id, 'foo_bar', 'not change edge id';
-    is $edge->{start_port}, 'x', 'set start_port';
-    is $edge->{end_port}, 'y', 'set end_port';
+    my $start_end_id = [$edge->start->id, $edge->end->id];
+    is_deeply $start_end_id, ['foo' => 'bar'], 'not change edge id';
+
+    is $edge->start->port, 'x', 'set start_port';
+    is $edge->end->port, 'y', 'set end_port';
 
     my $expected = [[a => 'bar'], [b => 'wao'], [c => 'moo']];
     is_deeply $edge->attributes, $expected, 'update edge attributes';
@@ -188,10 +222,10 @@ subtest 'subgraph' => sub {
 
     my $subgraph = $graph->{subgraphs}->[0];
     ok $subgraph, 'defined subgraph';
-    isa_ok $subgraph, "Graphviz::DSL", 'subgraph is-a Graphviz::DSL';
+    isa_ok $subgraph, "Graphviz::DSL::Graph", 'subgraph is-a Graphviz::DSL::Graph';
 };
 
-subtest 'as_string' => sub {
+subtest 'as_string(direct)' => sub {
     my $graph = graph {
         route main => [qw/init parse/];
         route init => 'make', parse => 'execute';
@@ -199,19 +233,47 @@ subtest 'as_string' => sub {
     };
 
     my $expected = <<'...';
-digraph G {
-  main;
-  init;
-  main -> init;
-  parse;
-  main -> parse;
-  make;
-  init -> make;
-  execute;
-  parse -> execute;
-  execute -> make;
-  compare;
-  execute -> compare;
+digraph "G" {
+  "main";
+  "init";
+  "main" -> "init";
+  "parse";
+  "main" -> "parse";
+  "make";
+  "init" -> "make";
+  "execute";
+  "parse" -> "execute";
+  "execute" -> "make";
+  "compare";
+  "execute" -> "compare";
+}
+...
+
+    is $graph->as_string, $expected, 'as_string';
+};
+
+subtest 'as_string(undirect)' => sub {
+    my $graph = graph {
+        type 'graph';
+        route main => [qw/init parse/];
+        route init => 'make', parse => 'execute';
+        route execute => [qw/make compare/];
+    };
+
+    my $expected = <<'...';
+graph "G" {
+  "main";
+  "init";
+  "main" -- "init";
+  "parse";
+  "main" -- "parse";
+  "make";
+  "init" -- "make";
+  "execute";
+  "parse" -- "execute";
+  "execute" -- "make";
+  "compare";
+  "execute" -- "compare";
 }
 ...
 
@@ -223,7 +285,7 @@ subtest 'set name' => sub {
         name 'test_graph';
     };
 
-    is $graph->{name}, 'test_graph', 'Set graph name';
+    is $graph->{id}, 'test_graph', 'Set graph name';
 };
 
 subtest 'set type' => sub {
@@ -232,6 +294,13 @@ subtest 'set type' => sub {
     };
 
     is $graph->{type}, 'graph', 'Set graph type';
+
+    eval {
+        my $graph2 = graph {
+            type 'hoge';
+        };
+    };
+    like $@, qr/should be 'digraph' or 'graph'/, 'set invalid graph type';
 };
 
 done_testing;
