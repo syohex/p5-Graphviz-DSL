@@ -4,59 +4,51 @@ use Test::More;
 
 use Graphviz::DSL;
 
+sub _any {
+    my ($got, $expecteds) = @_;
+
+    for my $e (@{$expecteds}) {
+        if ($got->[0] eq $e->[0] && $got->[1] eq $e->[1]) {
+            return 1;
+        }
+    }
+
+    return 0;
+}
+
 subtest 'multi route' => sub {
     my $graph = graph {
-        multi_route [a => [qw/b c d/] => e => [qw/f g/]];
+        multi_route +{
+            a => [qw/b c/],
+            d => 'e',
+            f => {
+                g => { h => 'i'},
+                j => 'k',
+            },
+        };
     };
 
     my @expected = (
-        [a => 'b'], [a => 'c'], [a => 'd'],
-        [b => 'e'], [c => 'e'], [d => 'e'],
-        [e => 'f'], [e => 'g'],
+        [a => 'b'], [a => 'c'],
+        [d => 'e'],
+        [f => 'g'], [g => 'h'], [h => 'i'],
+        [f => 'j'], [j => 'k'],
     );
 
-    my @gots;
     for my $edge (@{$graph->{edges}}) {
-        push @gots, [ $edge->start->id, $edge->end->id ];
+        my ($start_id, $end_id) = ($edge->start->id, $edge->end->id);
+        ok _any([$start_id, $end_id], \@expected), "add $start_id => $end_id";
     }
-
-    is_deeply \@gots, \@expected;
 };
 
-subtest 'multi route(all scalar)' => sub {
-    my $graph = graph {
-        multi_route [a => b => c => 'd'];
+subtest 'invalid argument' => sub {
+    eval {
+        my $graph = graph {
+            multi_route [];
+        };
     };
 
-    my @expected = (
-        [a => 'b'], [b => 'c'], [c => 'd'],
-    );
-
-    my @gots;
-    for my $edge (@{$graph->{edges}}) {
-        push @gots, [ $edge->start->id, $edge->end->id ];
-    }
-
-    is_deeply \@gots, \@expected;
-};
-
-subtest 'multi route(all ArrayRef)' => sub {
-    my $graph = graph {
-        multi_route [['a', 'b'] => ['c'] => ["e", 'f', 'g'] => ['h']];
-    };
-
-    my @expected = (
-        [a => 'c'], [b => 'c'],
-        [c => 'e'], [c => 'f'], [c => 'g'],
-        [e => 'h'], [f => 'h'], [g => 'h'],
-    );
-
-    my @gots;
-    for my $edge (@{$graph->{edges}}) {
-        push @gots, [ $edge->start->id, $edge->end->id ];
-    }
-
-    is_deeply \@gots, \@expected;
+    like $@, qr/should take 'HashRef'/, 'Invalid data type';
 };
 
 done_testing;

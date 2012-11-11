@@ -189,8 +189,15 @@ Graphviz::DSL - Graphviz Perl interface with DSL
 
       subgraph {
           global label => 'SUB2';
-          multi_route [ 'a' => [qw/b c d/] => [qw/e f/] => 'g' ];
-      };
+          multi_route +{
+              'a' => [qw/b c d/],
+              'd' => 'e',
+              'f' => {
+                  'g' => { 'h' => 'i'},
+                  'j' => 'k',
+              },
+          };
+     };
   };
 
   $graph->save(path => 'output', type => 'png', encoding => 'utf-8');
@@ -238,9 +245,27 @@ Add node I<a> and I<b> and add edge a->c, a->d, b->c, b->d.
 
 =back
 
-=head3 C<< multi_route(\@routes]) >>
+=head3 C<< multi_route(\%routes]) >>
 
-Add multiple routes
+Add multiple routes at once.
+
+    multi_route +{
+        a => [qw/b c/],
+        d => 'e',
+        f => {
+            g => { h => 'i'},
+            j => 'k',
+        },
+    };
+
+is same as
+
+    add a => 'b', a => 'c';
+    add d => 'e';
+    add f => 'g', f => 'j';
+    add g => 'h';
+    add h => 'i';
+    add j => 'k';
 
 =head3 C<< node($node_id, [%attributes]) >>
 

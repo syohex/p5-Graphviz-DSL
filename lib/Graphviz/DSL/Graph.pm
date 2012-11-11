@@ -85,34 +85,35 @@ sub _add_one_node {
 }
 
 sub multi_route {
-    my ($self, $node) = @_;
+    my ($self, $stuff) = @_;
 
-    unless (ref $node eq 'ARRAY') {
-        Carp::croak("multi_route should take 'ArrayRef'");
+    unless (ref $stuff eq 'HASH') {
+        Carp::croak("multi_route should take 'HashRef'");
     }
 
-    my $start = shift @{$node};
-    my $end   = shift @{$node};
+    my @edges = _apply(undef, $stuff);
+    $self->add(@{$_}[0, 1]) for @edges;
+}
 
-    my @routes;
-    while (1) {
-        ($start, $end) = map {
-            ref $_ eq 'ARRAY' ? $_ : [$_]
-        } ($start, $end);
+sub _apply {
+    my ($parent, $data) = @_;
 
-        for my $s (@{$start}) {
-            for my $e (@{$end}) {
-                push @routes, [$s, $e];
-            }
+    my @edges;
+    my $ref = ref $data;
+    if ($ref eq 'ARRAY') {
+        for my $child (@{$data}) {
+            push @edges, [$parent, $child];
         }
-
-        last unless (@{$node});
-
-        $start = $end;
-        $end   = shift @{$node};
+    } elsif ($ref eq 'HASH') {
+        while (my ($key, $value) = each %{$data}) {
+            push @edges, [$parent, $key] if defined $parent;
+            push @edges, _apply($key, $value);
+        }
+    } else {
+        push @edges, [$parent, $data];
     }
 
-    $self->add(@{$_}[0, 1]) for @routes;
+    return @edges;
 }
 
 sub _product {
