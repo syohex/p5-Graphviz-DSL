@@ -36,7 +36,7 @@ subtest 'output to string' => sub {
         end   => Graphviz::DSL::Node->new(id => 'bar', port => 'b'),
     );
     my $str = $edge->as_string(1);
-    is $str, '"foo:a" -> "bar:b"', 'as String with port';
+    is $str, '"foo":"a" -> "bar":"b"', 'as String with port';
 
     my $edge_noport = Graphviz::DSL::Edge->new(
         start => Graphviz::DSL::Node->new(id => 'foo'),
@@ -67,18 +67,18 @@ subtest 'update edge', sub {
     can_ok $edge, 'update_edge';
 
     $edge->update_edge(
-        Graphviz::DSL::Node->new(id => 'foo', port => 'a', compass => 'aa'),
-        Graphviz::DSL::Node->new(id => 'bar', port => 'b', compass => 'bb'),
+        Graphviz::DSL::Node->new(id => 'foo', port => 'a', compass => 'w'),
+        Graphviz::DSL::Node->new(id => 'bar', port => 'b', compass => 'e'),
     );
 
     my ($start, $end) = ($edge->start, $edge->end);
 
     is $start->{id}, 'foo', "'start' parameter";
     is $start->{port}, 'a', "update 'start port'";
-    is $start->{compass}, 'aa', "update 'start compass'";
+    is $start->{compass}, 'w', "update 'start compass'";
     is $end->{id}, 'bar', "'end' parameter";
     is $end->{port}, 'b', "update 'end port'";
-    is $end->{compass}, 'bb', "update 'end compass'";
+    is $end->{compass}, 'e', "update 'end compass'";
 };
 
 subtest 'equal to the edge' => sub {

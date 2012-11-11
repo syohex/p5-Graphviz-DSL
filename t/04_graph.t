@@ -49,6 +49,34 @@ subtest 'add multiple nodes and edges(odd args)' => sub {
     is_deeply \@gots, \@expected, 'edges between nodes';
 };
 
+subtest 'node with compass without port' => sub {
+    my $graph = graph { route 'foo:n' => 'bar:w' };
+
+    my $got = $graph->{edges}->[0];
+    my ($start, $end) = ($got->start, $got->end);
+
+    is $start->id, 'foo', 'start id';
+    is $start->compass, 'n', 'start compass';
+
+    is $end->id, 'bar', 'end id';
+    is $end->compass, 'w', 'end compass';
+};
+
+subtest 'node with port and compass' => sub {
+    my $graph = graph { route 'foo:aa:n' => 'bar:bb:e' };
+
+    my $got = $graph->{edges}->[0];
+    my ($start, $end) = ($got->start, $got->end);
+
+    is $start->id, 'foo', 'start id';
+    is $start->port, 'aa', 'start port';
+    is $start->compass, 'n', 'start compass';
+
+    is $end->id, 'bar', 'end id';
+    is $end->port, 'bb', 'end port';
+    is $end->compass, 'e', 'end compass';
+};
+
 subtest 'add new node' => sub {
     my @attrs = (a => 'bar', b => 'hoge');
     my $graph = graph { node 'foo', @attrs };
