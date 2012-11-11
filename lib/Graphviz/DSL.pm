@@ -92,6 +92,8 @@ sub _build_graph {
         local *subgraph = _build_subgraph($graph);
         local *multi_route = sub { $graph->multi_route(@_) };
 
+        local $Carp::CarpLevel = $Carp::CarpLevel + 1;
+
         $code->();
         $graph;
     }
