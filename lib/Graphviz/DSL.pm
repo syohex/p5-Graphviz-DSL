@@ -258,14 +258,14 @@ Add multiple routes at once.
         },
     };
 
-is same as
+equals to following:
 
-    add a => 'b', a => 'c';
-    add d => 'e';
-    add f => 'g', f => 'j';
-    add g => 'h';
-    add h => 'i';
-    add j => 'k';
+    route a => 'b', a => 'c';
+    route d => 'e';
+    route f => 'g', f => 'j';
+    route g => 'h';
+    route h => 'i';
+    route j => 'k';
 
 =head3 C<< node($node_id, [%attributes]) >>
 
