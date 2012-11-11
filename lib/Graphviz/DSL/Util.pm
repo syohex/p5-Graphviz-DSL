@@ -5,7 +5,7 @@ use warnings;
 use parent qw/Exporter/;
 use Carp ();
 
-our @EXPORT_OK = qw/parse_id/;
+our @EXPORT_OK = qw/parse_id validate_compass/;
 
 my @valid_compasses = qw/n ne e se s sw w nw c _/;
 
@@ -22,15 +22,13 @@ sub parse_id {
                 $compass = $port;
                 $port = undef;
             }
-        } elsif ($compass) {
-            _validate_compass($compass);
         }
     }
 
     return ($id, $port, $compass);
 }
 
-sub _validate_compass {
+sub validate_compass {
     my $compass = shift;
 
     unless (grep { $compass eq $_ } @valid_compasses) {
