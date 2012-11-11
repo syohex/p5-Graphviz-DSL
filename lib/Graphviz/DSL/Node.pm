@@ -6,7 +6,7 @@ use parent qw/Graphviz::DSL::Component/;
 
 use Carp ();
 use Scalar::Util qw/blessed/;
-use Graphviz::DSL::Util qw/parse_id/;
+use Graphviz::DSL::Util qw/parse_id validate_compass/;
 
 sub new {
     my ($class, %args) = @_;
@@ -24,6 +24,10 @@ sub new {
     my $port    = delete $args{port}    || undef;
     my $compass = delete $args{compass} || undef;
 
+    if (defined $compass) {
+        validate_compass($compass);
+    }
+
     bless {
         id         => $id,
         attributes => $attrs,
@@ -35,16 +39,16 @@ sub new {
 sub as_string {
     my $self = shift;
 
-    my $str = $self->{id};
+    my $str = qq{"$self->{id}"};
     if ($self->{port}) {
-        $str .= ":$self->{port}";
+        $str .= qq{:"$self->{port}"};
     }
 
     if ($self->{compass}) {
         $str .= ":$self->{compass}";
     }
 
-    return qq{"$str"};
+    return $str;
 }
 
 sub update_attributes {
