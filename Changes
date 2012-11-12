@@ -1,4 +1,12 @@
 Revision history for Perl extension Graphviz::DSL
 
+0.02  2012-11-
+        - Support undirected graph
+        - Support compass
+        - Support subgraph as edge node
+        - Support regexp match
+        - Add multi_route method
+        - Improve error message
+
 0.01  2012-10-17
         - original version
