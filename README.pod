@@ -25,7 +25,7 @@ Graphviz::DSL - Graphviz Perl interface with DSL
       }
 
       edges arrowhead => 'onormal', color => 'magenta4';
-      edge 'main_printf', arrowtail => 'diamond', color => '#3355FF';
+      edge ['main' => 'printf'], arrowtail => 'diamond', color => '#3355FF';
       global bgcolor => 'white';
 
       node 'execute', shape => 'Mrecord',
@@ -33,7 +33,7 @@ Graphviz::DSL - Graphviz Perl interface with DSL
       node 'printf',  shape => 'Mrecord',
                       label => '{printf |<y> format}';
 
-      edge 'execute:x_printf:y';
+      edge ['execute:x' => 'printf:y'];
       rank 'same', 'cleanup', 'execute';
 
       subgraph {
@@ -41,6 +41,18 @@ Graphviz::DSL - Graphviz Perl interface with DSL
           node 'init';
           node 'make';
       };
+
+      subgraph {
+          global label => 'SUB2';
+          multi_route +{
+              'a' => [qw/b c d/],
+              'd' => 'e',
+              'f' => {
+                  'g' => { 'h' => 'i'},
+                  'j' => 'k',
+              },
+          };
+     };
   };
 
   $graph->save(path => 'output', type => 'png', encoding => 'utf-8');
@@ -63,7 +75,8 @@ Set C<$name> as graph name. Default is 'G'.
 
 =head3 C<< type $type >>
 
-Set C<$type> as graph type. Default is 'digraph'.
+Set C<$type> as graph type. C<$type> should be digraph(directed graph)
+or graph(undirected graph). Default is 'digraph'.
 
 =head3 C<< add, route >>
 
@@ -86,6 +99,28 @@ For example:
 Add node I<a> and I<b> and add edge a->c, a->d, b->c, b->d.
 
 =back
+
+=head3 C<< multi_route(\%routes]) >>
+
+Add multiple routes at once.
+
+    multi_route +{
+        a => [qw/b c/],
+        d => 'e',
+        f => {
+            g => { h => 'i'},
+            j => 'k',
+        },
+    };
+
+equals to following:
+
+    route a => 'b', a => 'c';
+    route d => 'e';
+    route f => 'g', f => 'j';
+    route g => 'h';
+    route h => 'i';
+    route j => 'k';
 
 =head3 C<< node($node_id, [%attributes]) >>
 
