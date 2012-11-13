@@ -73,11 +73,25 @@ sub update_attributes {
 sub equal_to {
     my ($self, $node) = @_;
 
-    if (blessed $node && $node->isa('Graphviz::DSL::Node')) {
-        return $self->{id} eq $node->{id};
+    unless (blessed $node && $node->isa('Graphviz::DSL::Node')) {
+        return 0;
     }
 
-    return 0;
+    unless ($self->{id} eq $node->{id}) {
+        return 0;
+    }
+
+    my ($port1, $port2) = map { defined $_ ? $_ : '' } ($self->{port}, $node->{port});
+    unless ($port1 eq $port2) {
+        return 0;
+    }
+
+    my ($comp1, $comp2) = map { defined $_ ? $_ : '' } ($self->{compass}, $node->{compass});
+    unless ($comp1 eq $comp2) {
+        return 0;
+    }
+
+    return 1;
 }
 
 sub update {
