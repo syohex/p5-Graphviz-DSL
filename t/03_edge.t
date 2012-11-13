@@ -82,21 +82,21 @@ subtest 'update edge', sub {
 };
 
 subtest 'equal to the edge' => sub {
-    Graphviz::DSL::Node->new(id => 'foo');
-    Graphviz::DSL::Node->new(id => 'bar');
+    Graphviz::DSL::Node->new(id => 'foo', port => 'a', compass => 's');
+    Graphviz::DSL::Node->new(id => 'bar', port => 'b', compass => 'w');
 
     my $edge = Graphviz::DSL::Edge->new(
-        start => Graphviz::DSL::Node->new(id => 'foo'),
-        end   => Graphviz::DSL::Node->new(id => 'bar'),
+        start => Graphviz::DSL::Node->new(id => 'foo', port => 'a', compass => 's'),
+        end   => Graphviz::DSL::Node->new(id => 'bar', port => 'b', compass => 'w'),
     );
 
-    ok $edge->equal_to($edge), 'equal to same ID';
+    ok $edge->equal_to($edge), 'equal to ID, port, compass';
 
     my $edge2 = Graphviz::DSL::Edge->new(
-        start => Graphviz::DSL::Node->new(id => 'foo', port => 'a'),
-        end   => Graphviz::DSL::Node->new(id => 'bar', port => 'b'),
+        start => Graphviz::DSL::Node->new(id => 'foo', port => 'a', compass => 'w'),
+        end   => Graphviz::DSL::Node->new(id => 'bar', port => 'b', compass => 'w'),
     );
-    ok $edge->equal_to($edge2), 'equal to same ID with port';
+    ok !$edge->equal_to($edge2), 'equal to ID, port, but not equal to port';
 };
 
 subtest 'invalid constructor' => sub {
