@@ -48,13 +48,6 @@ sub as_string {
     sprintf "%s %s %s", $start->as_string, $edgeop, $end->as_string;
 }
 
-sub update_edge {
-    my ($self, $start, $end) = @_;
-
-    $self->{start} = $start;
-    $self->{end}   = $end;
-}
-
 sub equal_to {
     my ($self, $edge) = @_;
     my ($start, $end) = ($self->{start}, $self->{end});

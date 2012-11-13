@@ -61,7 +61,7 @@ sub add {
     }
 }
 
-sub _find_node {
+sub _find_same_id_node {
     my ($self, $id) = @_;
 
     for my $node (@{$self->{nodes}}) {
@@ -140,8 +140,9 @@ sub node {
             $node->update_attributes(\@attrs) if $node->id =~ m{$node_id};
         }
     } else {
-        if (my $node = $self->_find_node($node_id)) {
+        if (my $node = $self->_find_same_id_node($node_id)) {
             $node->update_attributes(\@attrs);
+            return $node;
         } else {
             my ($id, $port, $compass) = parse_id($node_id);
             my $node = Graphviz::DSL::Node->new(
@@ -170,30 +171,34 @@ sub _to_key_value_pair {
 }
 
 sub _create_node {
-    my ($self, $id) = @_;
+    my ($self, $node_id, $registered) = @_;
 
-    my $node = $self->node($id);
+    my $node;
+    if ($registered) {
+        $node = $self->node($node_id);
+    } else {
+        my ($id, $port, $compass) = parse_id($node_id);
+        $node = Graphviz::DSL::Node->new(
+            id => $id, port => $port, compass => $compass,
+        );
+    }
+
     return $node;
 }
 
-sub _equal_only_id {
-    my ($self, $node_id) = @_;
+sub _find_object {
+    my ($self, $id) = @_;
 
-    my ($id) = parse_id($node_id);
-    for my $obj (@{$self->{nodes}}) {
-        if ($id eq $obj->id && $node_id ne $obj->id) {
-            return $obj;
+    for my $subgraph (@{$self->{subgraphs}}) {
+        if ($subgraph->id eq $id) {
+            $subgraph->{delayed} = 1;
+            return $subgraph;
         }
     }
 
-    return;
-}
-
-sub _find_obj {
-    my ($self, $id) = @_;
-
-    for my $obj (@{$self->{nodes}}, @{$self->{subgraphs}}) {
-        if ($obj->id eq $id) {
+    my $node = $self->_create_node($id, 0);
+    for my $obj (@{$self->{nodes}}) {
+        if ($obj->equal_to($node)) {
             return $obj;
         }
     }
@@ -210,8 +215,8 @@ sub edge {
         Carp::croak("First parameter of 'edge' should be ArrayRef");
     }
 
-    my @start_objs = $self->_match_objs($id->[0]);
-    my @end_objs   = $self->_match_objs($id->[1]);
+    my @start_objs = $self->_match_objects($id->[0]);
+    my @end_objs   = $self->_match_objects($id->[1]);
 
     my @edge_objs;
     for my $start_obj (@start_objs) {
@@ -234,18 +239,11 @@ sub edge {
     if (@update_edges) {
         for my $edge (@update_edges) {
             $edge->update_attributes(\@attrs);
-
-            unless (grep { ref $_ eq 'Regexp'} @{$id}) {
-                my $start = $self->_equal_only_id($id->[0]);
-                my $end   = $self->_equal_only_id($id->[1]);
-
-                $start->update($id->[0]) if $start;
-                $end->update($id->[1])   if $end;
-            }
         }
     } else {
         my ($start, $end) = map {
-            $self->_find_obj($_) || $self->_create_node($_)
+            my $_id = $_;
+            $self->_find_object($_id) || $self->_create_node($_id, 1);
         } @{$id};
 
         my $edge = Graphviz::DSL::Edge->new(
@@ -259,63 +257,31 @@ sub edge {
     }
 }
 
-sub _does_update {
-    my ($self, $obj, $node_id) = @_;
-
-    if (blessed $obj && blessed $obj eq 'Graphviz::DSL::Node'
-            && ref $node_id ne 'Regexp' && $obj->id ne $node_id) {
-        return 1;
-    }
-    return 0;
-}
-
-sub _match_objs {
+sub _match_objects {
     my ($self, $pattern) = @_;
 
     my @objects;
-    my $matcher_code;
-    my $use_regexp = 0;
-
     if (ref $pattern eq 'Regexp') {
-        $matcher_code = \&_match_regexp;
-        $use_regexp = 1;
+        for my $obj (@{$self->{nodes}}, @{$self->{subgraphs}}) {
+            if ($obj->id =~ m{$pattern}) {
+                push @objects, $obj;
+            }
+
+            if (blessed $obj eq 'Graphviz::DSL::Graph') {
+                $obj->{delayed} = 1;
+            }
+        }
+
+        if (scalar @objects == 0) {
+            Carp::carp("No objects are matched\n");
+        }
     } else {
-        if ($pattern =~ m{^([^:]+):}) {
-            $pattern = $1;
-        }
-        $matcher_code = \&_match_string;
-    }
-
-    for my $obj (@{$self->{nodes}}, @{$self->{subgraphs}}) {
-        if ($matcher_code->($obj->id, $pattern)) {
+        if (my $obj = $self->_find_object($pattern)) {
             push @objects, $obj;
-            $obj->{delayed} = 1 if $obj->{is_subgraph};
         }
-    }
-
-    if ($use_regexp && scalar @objects == 0) {
-        Carp::carp("No objects are matched\n");
     }
 
     return @objects;
-}
-
-sub _match_regexp {
-    my ($target_id, $regexp) = @_;
-    return $target_id =~ m{$regexp};
-}
-
-sub _match_string {
-    my ($target_id, $id) = @_;
-    return $target_id eq $id;
-}
-
-sub edge_matcher {
-    my ($self, $start_matcher, $end_matcher) = @_;
-
-    if (scalar @_ > 3) {
-        Carp::carp("ignore after 3rd paramter");
-    }
 }
 
 sub name {
