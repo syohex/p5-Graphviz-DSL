@@ -118,27 +118,6 @@ subtest 'add new edge' => sub {
     is_deeply $edge->attributes, $expected, 'edge attributes';
 };
 
-subtest 'update edge' => sub {
-    my @attrs = (a => 'bar', b => 'hoge');
-    my $graph = graph {
-        edge ['foo' => 'bar'], @attrs;
-        edge ['foo:x' => 'bar:y'], b => 'wao', c => 'moo';
-    };
-
-    is scalar @{$graph->{nodes}}, 2, 'not change nodes';
-    is scalar @{$graph->{edges}}, 1, 'not change edges';
-
-    my $edge = $graph->{edges}->[0];
-    my $start_end_id = [$edge->start->id, $edge->end->id];
-    is_deeply $start_end_id, ['foo' => 'bar'], 'not change edge id';
-
-    is $edge->start->port, 'x', 'set start_port';
-    is $edge->end->port, 'y', 'set end_port';
-
-    my $expected = [[a => 'bar'], [b => 'wao'], [c => 'moo']];
-    is_deeply $edge->attributes, $expected, 'update edge attributes';
-};
-
 subtest 'update global nodes attributes' => sub {
     my $graph = graph {
         nodes name => 'foo', age => '10';
