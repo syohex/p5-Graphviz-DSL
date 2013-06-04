@@ -1,5 +1,7 @@
 Revision history for Perl extension Graphviz::DSL
 
+{{$NEXT}}
+
 0.02  2012-11-13
       [IMPROVEMENTS]
         - Support undirected graph

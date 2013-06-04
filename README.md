@@ -1,17 +1,13 @@
-=encoding utf-8
-
-=for stopwords
-
-=head1 NAME
+# NAME
 
 Graphviz::DSL - Graphviz Perl interface with DSL
 
-=head1 SYNOPSIS
+# SYNOPSIS
 
-  use Graphviz::DSL;
+    use Graphviz::DSL;
 
-  my $graph = graph {
-      name 'Sample';
+    my $graph = graph {
+        name 'Sample';
 
       route main => [qw/init parse cleanup printf/];
       route init => 'make', parse => 'execute';
@@ -42,65 +38,61 @@ Graphviz::DSL - Graphviz Perl interface with DSL
           node 'make';
       };
 
-      subgraph {
-          global label => 'SUB2';
-          multi_route +{
-              'a' => [qw/b c d/],
-              'd' => 'e',
-              'f' => {
-                  'g' => { 'h' => 'i'},
-                  'j' => 'k',
-              },
-          };
-     };
-  };
+        subgraph {
+            global label => 'SUB2';
+            multi_route +{
+                'a' => [qw/b c d/],
+                'd' => 'e',
+                'f' => {
+                    'g' => { 'h' => 'i'},
+                    'j' => 'k',
+                },
+            };
+       };
+    };
 
-  $graph->save(path => 'output', type => 'png', encoding => 'utf-8');
+    $graph->save(path => 'output', type => 'png', encoding => 'utf-8');
 
-=head1 DESCRIPTION
+# DESCRIPTION
 
-Graphviz::DSL is Perl version of Ruby gem I<Gviz>. This module provide
+Graphviz::DSL is Perl version of Ruby gem _Gviz_. This module provide
 DSL for generating DOT file(and image if you install Graphviz dot command).
 Outputted DOT file may be similar to your DSL, because Graphviz::DSL try to
 keep objects order in DSL(Order of objects in DSL is very important. If you
 change some objects order, then output image may be changed).
 
-=head1 INTERFACES
+# INTERFACES
 
-=head2 Method in DSL
+## Method in DSL
 
-=head3 C<< name $name >>
+### `name $name`
 
-Set C<$name> as graph name. Default is 'G'.
+Set `$name` as graph name. Default is 'G'.
 
-=head3 C<< type $type >>
+### `type $type`
 
-Set C<$type> as graph type. C<$type> should be digraph(directed graph)
+Set `$type` as graph type. `$type` should be digraph(directed graph)
 or graph(undirected graph). Default is 'digraph'.
 
-=head3 C<< add, route >>
+### `add, route`
 
-Add nodes and them edges. C<route> is alias of C<add> function.
+Add nodes and them edges. `route` is alias of `add` function.
 You can call these methods like following.
 
-=over
+- `add $nodes`
 
-=item C<< add $nodes >>
+    Add `$nodes` to this graph. `$nodes` should be Scalar or ArrayRef.
 
-Add C<$nodes> to this graph. C<$nodes> should be Scalar or ArrayRef.
+- `add $node1, \@edges1, $node2, \@edges2 ...`
 
-=item C<< add $node1, \@edges1, $node2, \@edges2 ... >>
+    Add nodes and edges. `$noden` should be Scalar or ArrayRef.
+    For example:
 
-Add nodes and edges. C<$noden> should be Scalar or ArrayRef.
-For example:
+        add [qw/a b/], [qw/c d/]
 
-    add [qw/a b/], [qw/c d/]
+    Add node _a_ and _b_ and add edge a->c, a->d, b->c, b->d.
 
-Add node I<a> and I<b> and add edge a->c, a->d, b->c, b->d.
-
-=back
-
-=head3 C<< multi_route(\%routes]) >>
+### `multi_route(\%routes])`
 
 Add multiple routes at once.
 
@@ -122,89 +114,84 @@ equals to following:
     route h => 'i';
     route j => 'k';
 
-=head3 C<< node($node_id, [%attributes]) >>
+### `node($node_id, [%attributes])`
 
 Add node or update attribute of specified node.
 
-=head3 C<< edge($edge_id, [%attributes]) >>
+### `edge($edge_id, [%attributes])`
 
 Add edge or update attribute of specified edge.
 
-=head3 C<< nodes(%attributes) >>
+### `nodes(%attributes)`
 
 Update attribute of all nodes.
 
-=head3 C<< edges(%attributes) >>
+### `edges(%attributes)`
 
 Update attribute of all edges.
 
-=head3 C<< nodeset >>
+### `nodeset`
 
 Return registered nodes.
 
-=head3 C<< edgeset >>
+### `edgeset`
 
 Return registered edges.
 
-=head3 C<< global >>
+### `global`
 
 Update graph attribute.
 
-=head3 C<< rank >>
+### `rank`
 
 Set rank.
 
-=head3 C<< subgraph($coderef) >>
+### `subgraph($coderef)`
 
 Create subgraph.
 
-=head2 Class Method
+## Class Method
 
-=head3 C<< $graph->save(%args) >>
+### `$graph->save(%args)`
 
 Save graph as DOT file.
 
-C<%args> is:
+`%args` is:
 
-=over
+- path
 
-=item path
+    Basename of output file.
 
-Basename of output file.
+- type
 
-=item type
+    Output image type, such as _png_, _gif_, if you install Graphviz(dot command).
+    If _dot_ command is not found, it generate only dot file.
+    `Graphviz::DSL` don't output image if you omit this attribute.
 
-Output image type, such as I<png>, I<gif>, if you install Graphviz(dot command).
-If I<dot> command is not found, it generate only dot file.
-C<Graphviz::DSL> don't output image if you omit this attribute.
+- encoding
 
-=item encoding
+    Encoding of output DOT file. Default is _utf-8_.
 
-Encoding of output DOT file. Default is I<utf-8>.
-
-=back
-
-=head3 C<< $graph->as_string >>
+### `$graph->as_string`
 
 Return DOT file as string. This is same as stringify itself.
 Graphviz::DSL overload stringify operation.
 
-=head1 SEE ALSO
+# SEE ALSO
 
-Gviz L<https://github.com/melborne/Gviz>
+Gviz [https://github.com/melborne/Gviz](https://github.com/melborne/Gviz)
 
-Graphviz L<http://www.graphviz.org/>
+Graphviz [http://www.graphviz.org/](http://www.graphviz.org/)
 
-=head1 AUTHOR
+# AUTHOR
 
-Syohei YOSHIDA E<lt>syohex@gmail.comE<gt>
+Syohei YOSHIDA <syohex@gmail.com>
 
-=head1 COPYRIGHT
+# COPYRIGHT
 
 Copyright 2012- Syohei YOSHIDA
 
-=head1 LICENSE
+# LICENSE
 
 This library is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself.
-
