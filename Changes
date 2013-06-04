@@ -2,6 +2,8 @@ Revision history for Perl extension Graphviz::DSL
 
 {{$NEXT}}
         - Convert to Minilla
+        - Document update
+        - Update sample program
 
 0.02  2012-11-13
       [IMPROVEMENTS]
