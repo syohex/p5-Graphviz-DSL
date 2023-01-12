@@ -2,6 +2,7 @@ requires 'File::Which';
 requires 'parent';
 requires 'perl', '5.008001';
 
-on build => sub {
-    requires 'ExtUtils::MakeMaker', '6.59';
+on configure => sub {
+    requires 'Module::Build::Tiny', '0.035';
 };
+

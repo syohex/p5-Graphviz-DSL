@@ -344,11 +344,11 @@ Graphviz L<http://www.graphviz.org/>
 
 =head1 AUTHOR
 
-Syohei YOSHIDA E<lt>syohex@gmail.comE<gt>
+Shohei YOSHIDA E<lt>syohex@gmail.comE<gt>
 
 =head1 COPYRIGHT
 
-Copyright 2013- Syohei YOSHIDA
+Copyright 2013- Shohei YOSHIDA
 
 =head1 LICENSE
 
