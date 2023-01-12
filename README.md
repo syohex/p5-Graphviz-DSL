@@ -1,3 +1,4 @@
+[![Actions Status](https://github.com/syohex/p5-Graphviz-DSL/actions/workflows/test.yml/badge.svg)](https://github.com/syohex/p5-Graphviz-DSL/actions)
 # NAME
 
 Graphviz::DSL - Graphviz Perl interface with DSL
@@ -9,34 +10,34 @@ Graphviz::DSL - Graphviz Perl interface with DSL
     my $graph = graph {
         name 'Sample';
 
-      route main => [qw/init parse cleanup printf/];
-      route init => 'make', parse => 'execute';
-      route execute => [qw/make compare printf /];
+        route main => [qw/init parse cleanup printf/];
+        route init => 'make', parse => 'execute';
+        route execute => [qw/make compare printf /];
 
-      nodes colorscheme => 'piyg8', style => 'filled';
+        nodes colorscheme => 'piyg8', style => 'filled';
 
-      my $index = 1;
-      for my $n ( nodeset() ) {
-          node($n->id, fillcolor => $index++);
-      }
+        my $index = 1;
+        for my $n ( nodeset() ) {
+            node($n->id, fillcolor => $index++);
+        }
 
-      edges arrowhead => 'onormal', color => 'magenta4';
-      edge ['main' => 'printf'], arrowtail => 'diamond', color => '#3355FF';
-      global bgcolor => 'white';
+        edges arrowhead => 'onormal', color => 'magenta4';
+        edge ['main' => 'printf'], arrowtail => 'diamond', color => '#3355FF';
+        global bgcolor => 'white';
 
-      node 'execute', shape => 'Mrecord',
-                      label => '{<x>execute | {a | b | c}}';
-      node 'printf',  shape => 'Mrecord',
-                      label => '{printf |<y> format}';
+        node 'execute', shape => 'Mrecord',
+                        label => '{<x>execute | {a | b | c}}';
+        node 'printf',  shape => 'Mrecord',
+                        label => '{printf |<y> format}';
 
-      edge ['execute:x' => 'printf:y'];
-      rank 'same', 'cleanup', 'execute';
+        edge ['execute:x' => 'printf:y'];
+        rank 'same', 'cleanup', 'execute';
 
-      subgraph {
-          global label => 'SUB';
-          node 'init';
-          node 'make';
-      };
+        subgraph {
+            global label => 'SUB';
+            node 'init';
+            node 'make';
+        };
 
         subgraph {
             global label => 'SUB2';
@@ -185,11 +186,11 @@ Graphviz [http://www.graphviz.org/](http://www.graphviz.org/)
 
 # AUTHOR
 
-Syohei YOSHIDA <syohex@gmail.com>
+Shohei YOSHIDA <syohex@gmail.com>
 
 # COPYRIGHT
 
-Copyright 2013- Syohei YOSHIDA
+Copyright 2013- Shohei YOSHIDA
 
 # LICENSE
 
