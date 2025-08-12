@@ -1,4 +1,4 @@
-[![Actions Status](https://github.com/syohex/p5-Graphviz-DSL/actions/workflows/test.yml/badge.svg)](https://github.com/syohex/p5-Graphviz-DSL/actions)
+[![Actions Status](https://github.com/syohex/p5-Graphviz-DSL/actions/workflows/test.yml/badge.svg?branch=master)](https://github.com/syohex/p5-Graphviz-DSL/actions?workflow=test) [![MetaCPAN Release](https://badge.fury.io/pl/Graphviz-DSL.svg)](https://metacpan.org/release/Graphviz-DSL)
 # NAME
 
 Graphviz::DSL - Graphviz Perl interface with DSL

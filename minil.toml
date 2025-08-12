@@ -1,5 +1,5 @@
 name = "Graphviz-DSL"
-badges = ["github-actions/test.yml"]
+badges = ["github-actions/test.yml", 'metacpan']
 authority="cpan:SYOHEX"
 
 module_maker="ModuleBuildTiny"
